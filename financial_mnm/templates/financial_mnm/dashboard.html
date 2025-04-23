@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ภาพรวมการจัดการการเงิน{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">ภาพรวมการจัดการการเงิน (ปี {{ current_year }})</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">สรุปงบประมาณปี {{ current_year }}</h5>
+                    <p class="card-text">
+                        <strong>งบประมาณทั้งหมด:</strong> {{ total_budget|default:"-" }} บาท
+                    </p>
+                    <p class="card-text">
+                        <strong>งบประมาณที่ใช้จ่ายแล้ว:</strong> {{ total_spent|default:"-" }} บาท
+                    </p>
+                    <p class="card-text">
+                        <strong>งบประมาณคงเหลือ:</strong> {{ remaining_budget|default:"-" }} บาท
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">การแจ้งเตือนการต่ออายุสัญญาฐานข้อมูล</h5>
+                    {% if renewal_alerts %}
+                        <ul class="list-unstyled">
+                            {% for alert in renewal_alerts %}
+                                <li class="mb-2">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    สัญญาการบอกรับฐานข้อมูล <strong>{{ alert.db_name }}</strong> กำลังจะหมดอายุในวันที่ {{ alert.end_date }}
+                                    <a href="{% url 'financial_mnm:calendar' %}" class="ms-2"><i class="fas fa-calendar-alt"></i></a>
+                                </li>
+                            {% empty %}
+                                <li class="text-muted">ไม่มีการแจ้งเตือนการต่ออายุสัญญาฐานข้อมูลในขณะนี้</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="card-text text-muted">ไม่มีข้อมูลการแจ้งเตือนการต่ออายุสัญญา</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">ปฏิทิน</h5>
+                    <div id="calendar-dashboard">
+                        <p> (ส่วนนี้จะเป็นปฏิทินแบบง่าย หรือส่วนย่อ)</p>
+                        <a href="{% url 'financial_mnm:calendar' %}" class="btn btn-sm btn-outline-info mt-2">ดูปฏิทินทั้งหมด</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-3">ข้อมูลการบอกรับฐานข้อมูลปี {{ current_year }}</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered shadow-sm bg-white">
+            <thead class="table-primary text-white">
+                <tr>
+                    <th>ชื่อฐานข้อมูล</th>
+                    <th>หน่วยงานสนับสนุน</th>
+                    <th>ผู้ขาย</th>
+                    <th>ระยะเวลาบอกรับ</th>
+                    <th>สถิติการใช้งาน ({{ current_year }})</th>
+                    <th>สถานะการชำระเงิน</th>
+                    <th>รายละเอียด</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in dashboard_data %}
+                <tr>
+                    <td>{{ item.database_name }}</td>
+                    <td>{{ item.funder }}</td>
+                    <td>{{ item.vendor }}</td>
+                    <td>{{ item.subscription_period }}</td>
+                    <td>{{ item.usage_last_year }}</td>
+                    <td>{{ item.payment_status }}</td>
+                    <td><a href="{% url 'financial_mnm:financial_details' item.fin_mnm_id %}" class="btn btn-sm btn-outline-info">ดูเพิ่มเติม</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center">ขณะนี้ไม่มีข้อมูลการจัดการการเงินในปัจจุบัน</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

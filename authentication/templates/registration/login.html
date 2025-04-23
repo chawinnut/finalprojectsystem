@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>เข้าสู่ระบบ</title>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid vh-100" style="background-color: #fce4ec;">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-md-8 col-lg-6 col-xl-5">
+                <div class="card shadow-lg rounded-4 border-pink">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4 text-pink">เข้าสู่ระบบ</h2>
+                        <form method="post" action="/accounts/login/">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-danger rounded-3" role="alert">
+                                    โปรดตรวจสอบชื่อผู้ใช้และรหัสผ่านของคุณ
+                                </div>
+                            {% endif %}
+                            <div class="mb-3 d-flex align-items-center">
+                                <label for="{{ form.username.id_for_label }}" class="form-label text-pink me-2" style="width: 100px;">ชื่อผู้ใช้</label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="form-text text-danger">
+                                        {{ form.username.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3 d-flex align-items-center">
+                                <label for="{{ form.password.id_for_label }}" class="form-label text-pink me-2" style="width: 100px;">รหัสผ่าน</label>
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                    <div class="form-text text-danger">
+                                        {{ form.password.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input border-pink focus-pink" type="checkbox" id="rememberMe">
+                                <label class="form-check-label text-muted" for="rememberMe">
+                                    จดจำฉัน
+                                </label>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-pink btn-lg rounded-pill" type="submit">เข้าสู่ระบบ</button>
+                            </div>
+                            <input type="hidden" name="next" value="{{ request.GET.next }}">
+                        </form>
+                        <p class="mt-3 text-center"><a href="/forgetpassword/" class="text-muted">ลืมรหัสผ่าน?</a></p>
+                        <p class="mt-2 text-center text-muted">ยังไม่มีบัญชี? <a href="/register/" class="text-pink">สร้างบัญชี</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+    <script>
+        const nextParam = new URLSearchParams(window.location.search).get('next');
+        if (nextParam) {
+            Swal.fire({
+                title: 'แจ้งเตือน',
+                text: 'คุณต้องเข้าสู่ระบบก่อนจึงจะสามารถเข้าถึงหน้านั้นได้',
+                icon: 'warning',
+                confirmButtonColor: '#f06292',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+    </script>
+{% endblock content %}
+
+{% block extra_css %}
+    <style>
+        /* CSS เดิมของคุณ */
+        .border-pink {
+            border-color: #f48fb1 !important;
+        }
+        .text-pink {
+            color: #f06292 !important;
+        }
+        .btn-pink {
+            background-color: #f06292;
+            border-color: #f06292;
+            color: white;
+        }
+        .btn-pink:hover {
+            background-color: #e91e63;
+            border-color: #e91e63;
+        }
+        .focus-pink:focus {
+            border-color: #e91e63;
+            box-shadow: 0 0 0 0.25rem rgba(233, 30, 99, 0.25);
+        }
+        .form-control {
+            border-color: #f8bbd0;
+        }
+        .form-control:focus {
+            border-color: #f06292;
+            box-shadow: 0 0 0 0.25rem rgba(240, 98, 146, 0.25);
+        }
+    </style>
+{% endblock extra_css %}

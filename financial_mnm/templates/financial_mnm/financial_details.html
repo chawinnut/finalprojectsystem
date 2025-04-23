@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}รายละเอียดการจัดการการเงิน: {{ subscription.DB_Name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">รายละเอียดการจัดการการเงิน: {{ subscription.DB_Name }}</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">ข้อมูลพื้นฐาน</h5>
+            <p class="card-text"><strong>ชื่อฐานข้อมูล:</strong> {{ subscription.DB_Name }}</p>
+            <p class="card-text"><strong>หน่วยงานสนับสนุน:</strong> {{ subscription.funder.Funder_Name|default:"-" }}</p>
+            <p class="card-text"><strong>ผู้ขาย:</strong> {{ subscription.vendor.Vendor_Name|default:"-" }}</p>
+            <p class="card-text"><strong>ระยะเวลาบอกรับ:</strong> {{ subscription.subscription_start_date|date:"d M Y" }} - {{ subscription.subscription_end_date|date:"d M Y" }}</p>
+
+            <h5 class="card-title mt-4">เงื่อนไขอื่นๆ</h5>
+            <p class="card-text"><strong>กระบวนการต่อรองเจรจา:</strong> {{ subscription.negotiation_process|default:"-" }}</p>
+            <p class="card-text"><strong>Perpetual License:</strong> {% if subscription.perpetual_license %}มี{% else %}ไม่มี{% endif %}</p>
+            {% if subscription.perpetual_license %}
+                <p class="card-text"><strong>รายละเอียด Perpetual License:</strong> {{ subscription.perpetual_license_details|default:"-" }}</p>
+            {% endif %}
+            <p class="card-text"><strong>ข้อกำหนดการใช้งาน:</strong> {{ subscription.usage_terms|default:"-" }}</p>
+
+            <div class="mt-4">
+                <a href="{% url 'financial_mnm:financial_management_list' %}" class="btn btn-secondary">กลับไปที่รายการ</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

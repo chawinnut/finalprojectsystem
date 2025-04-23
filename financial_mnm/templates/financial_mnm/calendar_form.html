@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2>{{ title }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% include 'financial_mnm/partials/form_fields.html' %}
+        <button type="submit" class="btn btn-primary">{{ title }}</button>
+        <a href="{% url 'financial_mnm:calendar' %}" class="btn btn-secondary">ยกเลิก</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}รายการจัดการการเงิน{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">รายการจัดการการเงิน (ปี {{ current_year }})</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered shadow-sm bg-white">
+            <thead class="table-primary text-white">
+                <tr>
+                    <th>ชื่อฐานข้อมูล</th>
+                    <th>ผู้ขาย</th>
+                    <th>ระยะเวลาบอกรับ</th>
+                    <th>สถิติการใช้งาน ({{ current_year }})</th>
+                    <th>สถานะการชำระเงิน</th>
+                    <th>รายละเอียด</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in financial_data %}
+                <tr>
+                    <td>{{ item.db_name }}</td>
+                    <td>{{ item.vendor }}</td>
+                    <td>{{ item.subscription_period }}</td>
+                    <td>{{ item.usage_last_year }}</td>
+                    <td>{{ item.payment_status }}</td>
+                    <td><a href="{{ item.details_link }}" class="btn btn-sm btn-outline-info">ดูเพิ่มเติม</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center">ไม่มีข้อมูลการจัดการการเงินในปีปัจจุบัน</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

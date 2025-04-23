@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}รายการชำระเงิน{% endblock %}
+
+{% block content %}
+    <h1>รายการชำระเงิน</h1>
+    <a href="{% url 'financial_mnm:payment_create' %}" class="btn btn-success mb-3">เพิ่มรายการชำระเงินใหม่</a>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'financial_mnm:import_data' %}" class="mb-3">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="upload_file" class="form-label">นำเข้าข้อมูลการชำระเงินจากไฟล์ Excel/CSV:</label>
+            <input type="file" class="form-control" id="upload_file" name="upload_file" accept=".xlsx, .csv">
+        </div>
+        <button type="submit" class="btn btn-primary">นำเข้า</button>
+    </form>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ฐานข้อมูล</th>
+                <th>วันที่ชำระเงิน</th>
+                <th>จำนวนเงิน</th>
+                <th>วิธีการชำระเงิน</th>
+                <th>ผู้ขาย</th>
+                <th>เอกสาร</th>
+                <th>การจัดการ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+                <tr>
+                    <td>{{ payment.database_subscription.DB_Name }}</td>
+                    <td>{{ payment.Payment_Date }}</td>
+                    <td>{{ payment.Payment_Amount }} {{ payment.currency }}</td>
+                    <td>{{ payment.Payment_Method }}</td>
+                    <td>{{ payment.Vendor_ID.Vendor_Name }}</td>
+                    <td>
+                        {% if payment.payment_document %}
+                            <a href="{{ payment.payment_document.url }}" target="_blank">ดูเอกสาร</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'financial_mnm:payment_update' payment.Payment_ID %}" class="btn btn-sm btn-warning">แก้ไข</a>
+                        <a href="{% url 'financial_mnm:payment_delete' payment.Payment_ID %}" class="btn btn-sm btn-danger">ลบ</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="7">ไม่มีรายการชำระเงิน</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include 'database_subscription/pagination.html' with page=payments %}
+
+{% endblock %}

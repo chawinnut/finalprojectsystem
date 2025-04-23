@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">นำเข้าข้อมูลผู้ขายจากไฟล์</button>
+        <a href="{% url 'financial_mnm:financial_dashboard' %}" class="btn btn-secondary">ยกเลิก</a>
+    </form>
+{% endblock %}

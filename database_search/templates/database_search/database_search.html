@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}ระบบค้นหาฐานข้อมูล{% endblock %}
+
+{% block content %}
+    <h1>ระบบค้นหาฐานข้อมูล</h1>
+    <form method="get">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">ค้นหา</button>
+    </form>
+
+    {% if results %}
+        <h2>ผลการค้นหา {{ results|length }} รายการ</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ชื่อฐานข้อมูล</th>
+                    <th>Collection</th>
+                    <th>รายการวารสาร (บางส่วน)</th>
+                    <th>เงื่อนไขสำนักพิมพ์ (บางส่วน)</th>
+                    </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                    <tr>
+                        <td>{{ result.DB_Name }}</td>
+                        <td>{{ result.DB_Collection|default:"-" }}</td>
+                        <td>{{ result.DBJournal_List|truncatechars:100|default:"-" }}</td>
+                        <td>{{ result.publisher_conditions|truncatechars:100|default:"-" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% elif request.GET %}
+        <p>ไม่พบผลลัพธ์ที่ตรงกับคำค้นหาของคุณ</p>
+    {% endif %}
+{% endblock %}

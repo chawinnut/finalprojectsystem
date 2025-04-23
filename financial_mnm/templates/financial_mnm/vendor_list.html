@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}รายชื่อผู้ขาย{% endblock %}
+
+{% block content %}
+    <h1>รายชื่อผู้ขาย</h1>
+    <a href="{% url 'financial_mnm:vendor_create' %}" class="btn btn-success mb-3">เพิ่มผู้ขายใหม่</a>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'financial_mnm:import_data' %}" class="mb-3">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="upload_file" class="form-label">นำเข้าข้อมูลผู้ขายจากไฟล์ Excel/CSV:</label>
+            <input type="file" class="form-control" id="upload_file" name="upload_file" accept=".xlsx, .csv">
+        </div>
+        <button type="submit" class="btn btn-primary">นำเข้า</button>
+    </form>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ชื่อผู้ขาย</th>
+                <th>ข้อมูลการติดต่อ</th>
+                <th>ข้อตกลงการจ่ายเงิน</th>
+                <th>การจัดการ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vendor in vendors %}
+                <tr>
+                    <td>{{ vendor.Vendor_Name }}</td>
+                    <td>{{ vendor.Vendor_Contact|truncatechars:50 }}</td>
+                    <td>{{ vendor.Vendor_Paycon|truncatechars:50 }}</td>
+                    <td>
+                        <a href="{% url 'financial_mnm:vendor_update' vendor.Vendor_ID %}" class="btn btn-sm btn-warning">แก้ไข</a>
+                        <a href="{% url 'financial_mnm:vendor_delete' vendor.Vendor_ID %}" class="btn btn-sm btn-danger">ลบ</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">ไม่มีข้อมูลผู้ขาย</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include 'database_subscription/pagination.html' with page=vendors %}
+
+{% endblock %}

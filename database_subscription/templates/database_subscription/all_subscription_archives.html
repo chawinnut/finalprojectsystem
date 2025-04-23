@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}ประวัติการเปลี่ยนแปลงฐานข้อมูลทั้งหมด{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1>ประวัติการเปลี่ยนแปลงฐานข้อมูลทั้งหมด</h1>
+
+        {% if archives %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ฐานข้อมูล</th>
+                        <th>ฟิลด์</th>
+                        <th>ค่าเดิม</th>
+                        <th>ค่าใหม่</th>
+                        <th>วันที่เปลี่ยนแปลง</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for archive in archives %}
+                        <tr>
+                            <td>{{ archive.database_subscription.DB_Name }}</td>
+                            <td>
+                                {% if archive.DB_Name != archive.database_subscription.DB_Name %}ชื่อฐานข้อมูล{% endif %}
+                                {% if archive.DB_Collection != archive.database_subscription.DB_Collection %}ชุดรวมฐานข้อมูล{% endif %}
+                                {% if archive.DBJournal_List != archive.database_subscription.DBJournal_List %}รายชื่อวารสาร{% endif %}
+                                {% if archive.DBEBook_List != archive.database_subscription.DBEBook_List %}รายชื่อ E-Book{% endif %}
+                                {% if archive.subscription_start_date != archive.database_subscription.subscription_start_date %}วันที่เริ่มต้นบอกรับ{% endif %}
+                                {% if archive.subscription_end_date != archive.database_subscription.subscription_end_date %}วันที่สิ้นสุดบอกรับ{% endif %}
+                                {% if archive.renewal_date != archive.database_subscription.renewal_date %}วันที่ต่ออายุ{% endif %}
+                                {% if archive.FinMnm_ID != archive.database_subscription.FinMnm_ID %}ID การจัดการการเงิน{% endif %}
+                            </td>
+                            <td>
+                                {% if archive.DB_Name != archive.database_subscription.DB_Name %}{{ archive.DB_Name }}{% endif %}
+                                {% if archive.DB_Collection != archive.database_subscription.DB_Collection %}{{ archive.DB_Collection }}{% endif %}
+                                {% if archive.DBJournal_List != archive.database_subscription.DBJournal_List %}{{ archive.DBJournal_List }}{% endif %}
+                                {% if archive.DBEBook_List != archive.database_subscription.DBEBook_List %}{{ archive.DBEBook_List }}{% endif %}
+                                {% if archive.subscription_start_date != archive.database_subscription.subscription_start_date %}{{ archive.subscription_start_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.subscription_end_date != archive.database_subscription.subscription_end_date %}{{ archive.subscription_end_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.renewal_date != archive.database_subscription.renewal_date %}{{ archive.renewal_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.FinMnm_ID != archive.database_subscription.FinMnm_ID %}{{ archive.FinMnm_ID }}{% endif %}
+                            </td>
+                            <td>
+                                {% if archive.DB_Name != archive.database_subscription.DB_Name %}{{ archive.database_subscription.DB_Name }}{% endif %}
+                                {% if archive.DB_Collection != archive.database_subscription.DB_Collection %}{{ archive.database_subscription.DB_Collection }}{% endif %}
+                                {% if archive.DBJournal_List != archive.database_subscription.DBJournal_List %}{{ archive.database_subscription.DBJournal_List }}{% endif %}
+                                {% if archive.DBEBook_List != archive.database_subscription.DBEBook_List %}{{ archive.database_subscription.DBEBook_List }}{% endif %}
+                                {% if archive.subscription_start_date != archive.database_subscription.subscription_start_date %}{{ archive.database_subscription.subscription_start_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.subscription_end_date != archive.database_subscription.subscription_end_date %}{{ archive.database_subscription.subscription_end_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.renewal_date != archive.database_subscription.renewal_date %}{{ archive.database_subscription.renewal_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.FinMnm_ID != archive.database_subscription.FinMnm_ID %}{{ archive.database_subscription.FinMnm_ID }}{% endif %}
+                            </td>
+                            <td>{{ archive.archived_at|date:"d M Y H:i:s" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5">ไม่มีประวัติการเปลี่ยนแปลง</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>ไม่มีประวัติการเปลี่ยนแปลงในขณะนี้</p>
+        {% endif %}
+    </div>
+{% endblock %}

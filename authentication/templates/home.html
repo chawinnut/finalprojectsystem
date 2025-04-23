@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>หน้าแรก - Subscription System</title>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5 bg-light text-center">
+    <h1 class="display-4 fw-bold text-primary mb-3">
+        {% if user.is_authenticated %}
+            สวัสดี, {{ name|capfirst }}
+        {% else %}
+            ยินดีต้อนรับ
+        {% endif %}
+        สู่ระบบจัดการการบอกรับทรัพยากรสารสนเทศอิเล็กทรอนิกส์
+    </h1>
+
+    {% if not user.is_authenticated %}
+        <p class="lead mt-3 text-secondary">กรุณา <a href="{% url 'login' %}" class="text-info">เข้าสู่ระบบ</a> เพื่อใช้งานระบบ</p>
+        <p class="mt-2 text-muted">หากยังไม่มีบัญชี <a href="{% url 'register' %}" class="text-info">สมัครสมาชิก</a> ที่นี่</p>
+    {% endif %}
+</div>
+
+{% if user.is_authenticated and show_alert and renewal_warning_list %}
+    <div class="modal fade show" id="renewalAlertModal" tabindex="-1" aria-labelledby="renewalAlertModalLabel" aria-modal="true" role="dialog" style="display: block;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-warning shadow">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="renewalAlertModalLabel"><i class="fas fa-exclamation-triangle me-2"></i> แจ้งเตือนการต่ออายุสัญญา</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด" onclick="hideRenewalAlert()"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary">สัญญาฐานข้อมูลต่อไปนี้กำลังจะหมดอายุ:</p>
+                    <ul class="list-group list-group-flush">
+                        {% for line in renewal_warning_list %}
+                            <li class="list-group-item">{{ line }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <form method="post" action="{% url 'hide_renewal_alert' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning">รับทราบ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show" id="renewalAlertBackdrop" style="display: block;"></div>
+{% endif %}
+
+{% if user.is_authenticated and calendar_data %}
+<div class="container my-5">
+    <h3 class="mb-4 text-info"><i class="fas fa-calendar-alt me-2"></i> ปฏิทินการหมดอายุของฐานข้อมูล</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered shadow-sm bg-white">
+            <thead class="table-info text-white">
+                <tr>
+                    <th>ชื่อฐานข้อมูล</th>
+                    <th>วันหมดอายุ</th>
+                    <th>สถานะ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in calendar_data %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.expiry_date }}</td>
+                        <td>
+                            {% if item.is_expiring_soon %}
+                                <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-circle me-1"></i> ใกล้หมดอายุ</span>
+                            {% else %}
+                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> ใช้งานปกติ</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    {% if user.is_authenticated and show_alert %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const renewalAlertModalElement = document.getElementById('renewalAlertModal');
+            const renewalAlertModal = new bootstrap.Modal(renewalAlertModalElement, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            renewalAlertModal.show();
+
+            window.hideRenewalAlert = function () {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('renewalAlertModal'));
+                modal.hide();
+                const backdrop = document.getElementById('renewalAlertBackdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'none';
+                }
+            };
+        });
+    </script>
+    {% endif %}
+{% endblock scripts %}

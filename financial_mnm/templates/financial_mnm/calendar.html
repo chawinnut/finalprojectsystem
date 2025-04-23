@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ปฏิทินกำหนดการ{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="bg-white p-2 rounded shadow-sm d-inline-block">
+            <h2 class="mb-0" style="color: black;">ปฏิทินกำหนดการ</h2>
+        </div>
+        <div>
+            <a href="{% url 'financial_mnm:calendar_create' %}" class="btn btn-primary" style="background-color: #EFA7AE; border-color: #EFA7AE;">
+                <i class="fas fa-pencil-alt me-2"></i> เพิ่มกำหนดการ
+            </a>
+        </div>
+    </div>
+    <div id="calendar"></div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fc .fc-button {
+        background-color: #EFA7AE;
+        border-color: #EFA7AE;
+        color: #fff;
+        font-size: 0.9rem;
+    }
+    .fc .fc-button:hover {
+        background-color: #f08ca7;
+        border-color: #f08ca7;
+    }
+    .fc .fc-button:disabled {
+        background-color: #f8d7da;
+        border-color: #f8d7da;
+        color: #6c757d;
+    }
+
+    /* ปรับสีข้อความของเหตุการณ์ในปฏิทิน */
+    .fc-event-title {
+        color: #fff !important;
+        font-size: 0.85rem;
+    }
+    .fc-event {
+        background-color: #EFA7AE;
+        border-color: #EFA7AE;
+    }
+    .fc-event:hover {
+        background-color: #f08ca7;
+        border-color: #f08ca7;
+    }
+
+    /* ปรับสีหัวข้อของปฏิทิน */
+    .fc-toolbar-title {
+        color: black;
+        font-size: 1.25rem;
+    }
+
+    /* ปรับสีของเส้นขอบและพื้นหลังของวันในปฏิทิน */
+    .fc-daygrid-day {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+    }
+    .fc-col-header-cell {
+        background-color: #e9ecef;
+        border-bottom: 1px solid #dee2e6;
+        color: black;
+        font-weight: bold;
+        padding: 0.5rem 0;
+    }
+    .fc-day-number {
+        color: black;
+        font-size: 0.8rem;
+        padding: 0.2rem;
+    }
+    .fc-today {
+        background-color: #fff3cd !important;
+        border-color: #ffecb5 !important;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.33/moment-timezone-with-data.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'th',
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: '{% url "financial_mnm:calendar_events_json" %}',
+            eventClick: function(info) {
+                Swal.fire({
+                    title: info.event.title,
+                    html: `<p>วันที่: ${moment(info.event.start).format('D MMMM')} เวลา: ${moment(info.event.start).format('HH:mm')}</p>`,
+                    showCancelButton: true,
+                    confirmButtonText: 'แก้ไข',
+                    cancelButtonText: 'ปิด',
+                    confirmButtonColor: '#EFA7AE',
+                    cancelButtonColor: '#EFA7AE',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = info.event.url;
+                    }
+                })
+            }
+        });
+        calendar.render();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}แก้ไขฐานข้อมูล{% else %}เพิ่มฐานข้อมูลใหม่{% endif %}{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1>{% if form.instance.pk %}แก้ไขฐานข้อมูล{% else %}เพิ่มฐานข้อมูลใหม่{% endif %}</h1>
+
+        <div class="mb-3">
+            <h2>นำเข้าจากไฟล์ Excel/CSV</h2>
+            <div id="drop-area" class="border p-4 text-center bg-light rounded">
+                <p>ลากและวางไฟล์ Excel/CSV ที่นี่ หรือ <label for="file-input" class="btn btn-sm btn-outline-secondary">เลือกไฟล์</label></p>
+                <input type="file" id="file-input" accept=".xlsx,.csv" style="display: none;">
+            </div>
+            <div id="file-list" class="mt-2"></div>
+        </div>
+
+        <h2>หรือกรอกข้อมูลด้วยตนเอง</h2>
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    {% for field in form %}
+                        {% if field.errors %}
+                            <strong>{{ field.label }}:</strong> {{ field.errors }}<br>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="{{ form.DB_Name.id_for_label }}" class="form-label">ชื่อฐานข้อมูล</label>
+                {{ form.DB_Name }}
+                {% if form.DB_Name.errors %}
+                    <div class="form-text text-danger">{{ form.DB_Name.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.DB_Collection.id_for_label }}" class="form-label">Collection</label>
+                {{ form.DB_Collection }}
+                {% if form.DB_Collection.errors %}
+                    <div class="form-text text-danger">{{ form.DB_Collection.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.DBJournal_List.id_for_label }}" class="form-label">จำนวนชื่อเรื่องแบบวารสาร</label>
+                {{ form.DBJournal_List }}
+                {% if form.DBJournal_List.errors %}
+                    <div class="form-text text-danger">{{ form.DBJournal_List.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.DBEBook_List.id_for_label }}" class="form-label">จำนวนชื่อเรื่องแบบ E-Books</label>
+                {{ form.DBEBook_List }}
+                {% if form.DBEBook_List.errors %}
+                    <div class="form-text text-danger">{{ form.DBEBook_List.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.subscription_start_date.id_for_label }}" class="form-label">วันที่เริ่มต้น</label>
+                {{ form.subscription_start_date }}
+                {% if form.subscription_start_date.errors %}
+                    <div class="form-text text-danger">{{ form.subscription_start_date.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.subscription_end_date.id_for_label }}" class="form-label">วันที่สิ้นสุด</label>
+                {{ form.subscription_end_date }}
+                {% if form.subscription_end_date.errors %}
+                    <div class="form-text text-danger">{{ form.subscription_end_date.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.FinMnm_ID.id_for_label }}" class="form-label">รหัสการจัดการการเงิน</label>
+                {{ form.FinMnm_ID }}
+                {% if form.FinMnm_ID.errors %}
+                    <div class="form-text text-danger">{{ form.FinMnm_ID.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.created_at.id_for_label }}" class="form-label">วันที่สร้าง</label>
+                {{ form.created_at }}
+                {% if form.created_at.errors %}
+                    <div class="form-text text-danger">{{ form.created_at.errors }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary">บันทึกด้วยตนเอง</button>
+            <a href="{% url 'database_subscription:database_subscription_list' %}" class="btn btn-secondary">ยกเลิก</a>
+        </form>
+    </div>
+
+    {% block scripts %}
+        <script>
+            const dropArea = document.getElementById('drop-area');
+            const fileInput = document.getElementById('file-input');
+            const fileListDiv = document.getElementById('file-list');
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            function highlight(item) {
+                item.classList.add('bg-success', 'text-white');
+            }
+
+            function unhighlight(item) {
+                item.classList.remove('bg-success', 'text-white');
+            }
+
+            dropArea.addEventListener('dragenter', function() { highlight(this); });
+            dropArea.addEventListener('dragover', preventDefaults);
+            dropArea.addEventListener('dragleave', function() { unhighlight(this); });
+            dropArea.addEventListener('drop', handleDrop);
+            fileInput.addEventListener('change', handleFileSelect);
+
+            function handleDrop(e) {
+                unhighlight(this);
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+
+            function handleFileSelect(e) {
+                const files = e.target.files;
+                handleFiles(files);
+            }
+
+            function handleFiles(files) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const listItem = document.createElement('p');
+                    listItem.textContent = 'กำลังประมวลผล: ' + file.name;
+                    fileListDiv.appendChild(listItem);
+                    uploadFile(file, listItem);
+                }
+            }
+
+            function uploadFile(file, listItem) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+                fetch("{% url 'database_subscription:import_subscription_excel' %}", { // URL สำหรับ View ที่จะประมวลผลไฟล์
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    listItem.textContent = data.message || 'อัปโหลดและประมวลผลสำเร็จ: ' + file.name;
+                    if (data.success) {
+                        listItem.classList.add('text-success');
+                        // อาจจะมีการ Redirect หรือการอัปเดต UI อื่นๆ ที่นี่
+                    } else {
+                        listItem.classList.add('text-danger');
+                        listItem.textContent += ' - ' + (data.error || 'เกิดข้อผิดพลาดในการประมวลผล');
+                    }
+                })
+                .catch(error => {
+                    listItem.textContent = 'เกิดข้อผิดพลาดในการอัปโหลด: ' + file.name;
+                    listItem.classList.add('text-danger');
+                    console.error('Error:', error);
+                });
+            }
+        </script>
+    {% endblock scripts %}
+{% endblock content %}

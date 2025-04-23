@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ประวัติฐานข้อมูล: {{ database_subscription.DB_Name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2>ประวัติการเปลี่ยนแปลงฐานข้อมูล: {{ database_subscription.DB_Name }}</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>วันที่/เวลาที่ Archive</th>
+                <th>ชื่อฐานข้อมูล</th>
+                <th>Collection</th>
+                <th>จำนวนวารสาร</th>
+                <th>จำนวน E-Books</th>
+                <th>วันที่เริ่มต้น</th>
+                <th>วันที่สิ้นสุด</th>
+                <th>กำหนดการต่ออายุ</th>
+                <th>รหัสการจัดการการเงิน</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for archive in archives %}
+            <tr>
+                <td>{{ archive.archived_at }}</td>
+                <td>{{ archive.DB_Name }}</td>
+                <td>{{ archive.DB_Collection|default:"-" }}</td>
+                <td>{{ archive.DBJournal_List|default:"-" }}</td>
+                <td>{{ archive.DBEBook_List|default:"-" }}</td>
+                <td>{{ archive.subscription_start_date|date:"d M Y"|default:"-" }}</td>
+                <td>{{ archive.subscription_end_date|date:"d M Y"|default:"-" }}</td>
+                <td>{{ archive.renewal_date|date:"d M Y"|default:"-" }}</td>
+                <td>{{ archive.FinMnm_ID_id|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="9">ไม่มีประวัติการเปลี่ยนแปลง</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'database_subscription:subscription_list' %}" class="btn btn-secondary">กลับไปรายการฐานข้อมูล</a>
+</div>
+{% endblock %}

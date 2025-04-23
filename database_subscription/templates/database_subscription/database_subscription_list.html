@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}รายการฐานข้อมูลที่บอกรับ{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1>รายการฐานข้อมูลที่บอกรับ</h1>
+        <a href="{% url 'database_subscription:subscription_create' %}" class="btn btn-primary mb-3">เพิ่มฐานข้อมูลใหม่</a>
+        <a href="{% url 'database_subscription:import_subscription_excel' %}" class="btn btn-info mb-3">นำเข้าจาก Excel</a>
+
+        {% if messages %}
+            <div class="alert alert-success">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if subscriptions %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ชื่อฐานข้อมูล</th>
+                        <th>วันที่เริ่มต้น</th>
+                        <th>วันที่สิ้นสุด</th>
+                        <th>การกระทำ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in subscriptions %}
+                        <tr>
+                            <td>{{ sub.DB_Name }}</td>
+                            <td>{{ sub.subscription_start_date|date:"d M Y"|default:"-" }}</td>
+                            <td>{{ sub.subscription_end_date|date:"d M Y"|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'database_subscription:subscription_update' pk=sub.pk %}" class="btn btn-sm btn-warning">แก้ไข</a>
+                                <a href="{% url 'database_subscription:subscription_delete' pk=sub.pk %}" class="btn btn-sm btn-danger">ลบ</a>
+                                <a href="{% url 'database_subscription:subscription_archive' pk=sub.pk %}" class="btn btn-sm btn-secondary">ประวัติ</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% include 'database_subscription/pagination.html' with page_obj=subscriptions %}
+        {% else %}
+            <p>ไม่มีฐานข้อมูลที่บอกรับในขณะนี้</p>
+        {% endif %}
+
+        {# ปุ่ม "นำเข้าสถิติการใช้งาน" อาจมีใน Navigation Bar หรือที่อื่น #}
+    </div>
+{% endblock %}
