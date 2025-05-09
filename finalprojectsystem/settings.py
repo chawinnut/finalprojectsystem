@@ -62,6 +62,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "finalprojectsystem.urls"
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
