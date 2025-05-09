@@ -1,0 +1,2 @@
+{% load widget_tweaks %}
+<input type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'g' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>

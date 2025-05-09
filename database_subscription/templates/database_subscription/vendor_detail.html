@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}รายละเอียดผู้ขาย: {{ vendor.Vendor_Name }}{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1>รายละเอียดผู้ขาย: {{ vendor.Vendor_Name }}</h1>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ vendor.Vendor_Name }}</h5>
+                <p class="card-text"><strong>ผู้ติดต่อ:</strong> {{ vendor.Contact_Person|default:"-" }}</p>
+                <p class="card-text"><strong>อีเมล:</strong> {{ vendor.Email|default:"-" }}</p>
+                <p class="card-text"><strong>เบอร์โทรศัพท์:</strong> {{ vendor.Phone_Number|default:"-" }}</p>
+                <p class="card-text"><strong>ที่อยู่:</strong> {{ vendor.Address|default:"-" }}</p>
+                <a href="{% url 'database_subscription:vendor_update' vendor.pk %}" class="btn btn-primary btn-sm mt-3">แก้ไขผู้ขาย</a>
+                <a href="{% url 'database_subscription:vendor_delete' vendor.pk %}" class="btn btn-danger btn-sm mt-3">ลบผู้ขาย</a>
+                <a href="{% url 'database_subscription:vendor_list' %}" class="btn btn-secondary mt-3">กลับไปรายการผู้ขาย</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

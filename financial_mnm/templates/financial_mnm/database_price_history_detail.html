@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+    <h1 class="mb-4 text-center fw-bold" style="color: #c95b67;">ประวัติราคาฐานข้อมูล: {{ database_subscription.DB_Name }}</h1>
+
+    <div class="card shadow rounded-4 border-0" style="background: #fff0f3;">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-light">
+                        <tr class="text-center">
+                            <th>ปีงบประมาณ</th>
+                            <th>ราคา สกุลเงิน</th>
+                            <th>ร้อยละการขึ้นราคาจากปีก่อนหน้า</th>
+                            <th>ค่าใช้จ่ายจริง (บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for history in price_history %}
+                            <tr>
+                                <td class="text-center">{{ history.budget_year }}</td>
+                                <td>
+                                    {% if history.price is not None %}
+                                        {{ history.currency }} {{ history.price|floatformat:2 }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if history.percentage_increase is not None %}
+                                        {{ history.percentage_increase|floatformat:2 }}%
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if history.actual_cost_thb is not None %}
+                                        {{ history.actual_cost_thb|intcomma|floatformat:2 }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-center">ไม่มีประวัติราคา</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3">
+                <a href="{% url 'financial_mnm:dashboard' %}" class="btn btn-secondary rounded-pill px-3"><i class="fas fa-arrow-left me-1"></i> กลับสู่ Dashboard</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

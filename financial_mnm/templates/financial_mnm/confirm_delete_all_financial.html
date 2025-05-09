@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}ยืนยันการลบข้อมูลการเงินทั้งหมด{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1>ยืนยันการลบข้อมูลการเงินทั้งหมด</h1>
+        <p class="lead text-danger">คำเตือน: คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการจัดการงบประมาณทั้งหมด?</p>
+        <p>การดำเนินการนี้เป็นการถาวรและไม่สามารถยกเลิกได้ โปรดตรวจสอบให้แน่ใจก่อนดำเนินการต่อ</p>
+
+        <form method="post" action="{% url 'database_subscription:delete_all_financial_data' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">ยืนยันการลบข้อมูลทั้งหมด</button>
+            <a href="{% url 'database_subscription:financial_management_list' %}" class="btn btn-secondary">ยกเลิก</a>
+        </form>
+    </div>
+{% endblock %}

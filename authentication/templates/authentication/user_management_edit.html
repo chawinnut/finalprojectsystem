@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}แก้ไขผู้ใช้: {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">แก้ไขผู้ใช้: <span class="text-primary">{{ user.username }}</span></h1>
+
+    <p class="lead mb-4">
+        หน้านี้ใช้สำหรับแก้ไขข้อมูลส่วนตัวและกำหนดสิทธิ์การใช้งานของผู้ใช้ <strong class="text-info">{{ user.username }}</strong>
+        โปรดตรวจสอบและทำการเปลี่ยนแปลงข้อมูลในแบบฟอร์มด้านล่างอย่างระมัดระวัง และเลือกกลุ่ม (Roles) ที่เหมาะสมให้กับผู้ใช้
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <i class="fas fa-user me-2"></i> ข้อมูลผู้ใช้
+            </div>
+            <div class="card-body">
+                <p class="card-text mb-3">
+                    ส่วนนี้ใช้สำหรับแก้ไขข้อมูลส่วนตัวของผู้ใช้แต่ละคน โปรดตรวจสอบความถูกต้องของข้อมูลก่อนทำการบันทึก
+                </p>
+                {{ form.as_p }}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <i class="fas fa-users me-2"></i> การกำหนดกลุ่ม (Roles)
+            </div>
+            <div class="card-body">
+                <p class="card-text mb-3">
+                    เลือกกลุ่มที่ต้องการกำหนดให้กับผู้ใช้ <strong class="text-info">{{ user.username }}</strong> การเลือกกลุ่มจะเป็นการกำหนดบทบาทและสิทธิ์การใช้งานต่างๆ ในระบบ
+                </p>
+                {% for group in groups %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="groups" value="{{ group.id }}" {% if group in user.groups.all %}checked{% endif %}>
+                        <label class="form-check-label">
+                            {{ group.name }}
+                            {% if group.name == 'super_librarian' %}
+                                <span class="badge bg-danger ms-2">ผู้ดูแลระบบสูงสุด</span>
+                            {% elif group.name == 'librarian' %}
+                                <span class="badge bg-info ms-2">บรรณารักษ์</span>
+                            {% elif group.name == 'member' %}
+                                <span class="badge bg-success ms-2">สมาชิก</span>
+                            {% else %}
+                                <span class="badge bg-secondary ms-2">อื่นๆ</span>
+                            {% endif %}
+                            <br>
+                            <small class="form-text text-muted ms-4">
+                                คำอธิบาย:
+                                {% if group.name == 'super_librarian' %}
+                                    มีสิทธิ์เข้าถึงและจัดการทุกส่วนของระบบ รวมถึงการจัดการผู้ใช้และกลุ่มอื่นๆ
+                                {% elif group.name == 'librarian' %}
+                                    มีสิทธิ์ในการจัดการข้อมูลฐานข้อมูลและการเงินในระดับหนึ่ง
+                                {% elif group.name == 'member' %}
+                                    มีสิทธิ์ในการค้นหาและดูข้อมูลเท่านั้น
+                                {% else %}
+                                    (ไม่มีคำอธิบายสำหรับกลุ่มนี้)
+                                {% endif %}
+                            </small>
+                        </label>
+                    </div>
+                {% endfor %}
+                <p class="form-text text-muted mt-3">
+                    เลือก Checkbox เพื่อเพิ่มผู้ใช้เข้าสู่กลุ่ม หรือยกเลิกการเลือกเพื่อนำผู้ใช้ออกจากกลุ่ม
+                </p>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-2"></i> บันทึกการเปลี่ยนแปลง
+        </button>
+        <a href="{% url 'user_management_list' %}" class="btn btn-secondary">
+            <i class="fas fa-times me-2"></i> ยกเลิก
+        </a>
+    </form>
+</div>
+{% endblock %}

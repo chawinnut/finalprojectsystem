@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}รายละเอียดฐานข้อมูล : {{ subscription.DB_Name }}{% endblock %}
+
+{% block content %}
+<style>
+    .detail-header {
+        padding: 1.2rem 0;
+        margin-bottom: 1.8rem;
+        border-bottom: 2px solid #ddd;
+    }
+    .detail-header h1 {
+        color: #000;
+        font-weight: 500;
+        margin-bottom: 0.6rem;
+    }
+    .detail-item {
+        padding: 0.6rem 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+    }
+    .detail-item strong {
+        min-width: 200px;
+        color: #333;
+        font-weight: bold;
+    }
+    .detail-value {
+        color: #000;
+        flex-grow: 1;
+        font-weight: normal;
+    }
+    .status-badge {
+        padding: 0.3rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: white;
+    }
+    .status-expired {
+        background-color: #d32f2f;
+    }
+    .status-current {
+        background-color: #388e3c;
+    }
+    .status-future {
+        background-color: #1976d2;
+    }
+    .icon-sm {
+        margin-right: 0.4rem;
+        font-size: 0.9rem;
+        color: #777;
+    }
+    .action-button {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        margin-right: 0.4rem;
+        border: 1px solid #1976d2;
+        color: #1976d2;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .action-button:hover {
+        background-color: #1976d2;
+        color: white;
+    }
+    .delete-button {
+        border-color: #d32f2f;
+        color: #d32f2f;
+    }
+    .delete-button:hover {
+        background-color: #d32f2f;
+        color: white;
+    }
+    .back-link {
+        display: inline-block;
+        margin-top: 1.5rem;
+        color: #1976d2;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    .back-link:hover {
+        text-decoration: underline;
+    }
+    .check-icon {
+        color: #388e3c;
+        font-size: 1.1rem;
+        margin-left: 0.2rem;
+    }
+    .cross-icon {
+        color: #d32f2f;
+        font-size: 1.1rem;
+        margin-left: 0.2rem;
+    }
+    .file-link {
+        color: #1976d2;
+        text-decoration: underline;
+    }
+    .file-link:hover {
+        color: #0d47a1;
+    }
+    .card-header-light {
+        background-color: #f9f9f9;
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    .card-title-small {
+        font-size: 1rem;
+        color: #333;
+        margin-bottom: 0;
+        font-weight: 500;
+    }
+    .card-body-small {
+        padding: 0.8rem;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="detail-header">
+        <h1><i class="fa fa-book icon-sm"></i> {{ subscription.DB_Name }}</h1>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header card-header-light">
+            <h5 class="card-title card-title-small"><i class="fa fa-info-circle icon-sm"></i> ข้อมูลทั่วไป</h5>
+        </div>
+        <div class="card-body card-body-small">
+            <div class="detail-item">
+                <strong><i class="fa fa-tag icon-sm"></i> ชื่อฐานข้อมูล :</strong>
+                <span class="detail-value">{{ subscription.DB_Name }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-calendar-alt icon-sm"></i> วันที่เริ่มต้น :</strong>
+                <span class="detail-value">{{ subscription.subscription_start_date|date:"d M Y"|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-calendar-times icon-sm"></i> วันที่สิ้นสุด :</strong>
+                <span class="detail-value">{{ subscription.subscription_end_date|date:"d M Y"|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-calendar-check icon-sm"></i> กำหนดต่ออายุ :</strong>
+                <span class="detail-value">{{ subscription.renewal_date|date:"d M Y"|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-calendar-week icon-sm"></i> ปีที่บอกรับ :</strong>
+                <span class="detail-value">{{ subscription.renewal_year|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-signal icon-sm"></i> สถานะ :</strong>
+                <span class="detail-value">
+                    {% if subscription.subscription_status == 'current' %}
+                        <span class="status-badge status-current"><i class="fa fa-check-circle me-1"></i> {{ subscription.get_subscription_status_display }}</span>
+                    {% elif subscription.subscription_status == 'expired' %}
+                        <span class="status-badge status-expired"><i class="fa fa-times-circle me-1"></i> {{ subscription.get_subscription_status_display }}</span>
+                    {% else %}
+                        <span class="status-badge status-future"><i class="fa fa-clock me-1"></i> {{ subscription.get_subscription_status_display }}</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-cubes icon-sm"></i> Collections :</strong>
+                <span class="detail-value">
+                    {% if subscription.collection_details.all %}  {# Access the related manager directly #}
+                        <ul>
+                            {% for detail in subscription.collection_details.all %}
+                                <li>
+                                    {{ detail.collection_name }}
+                                    {% if detail.journal_count or detail.ebook_count %}
+                                        (จำนวนชื่อเรื่องแบบ E-Journals
+                                        : {{ detail.journal_count|default:0|intcomma }},
+                                        จำนวนชื่อเรื่องแบบ E-Books
+                                        : {{ detail.ebook_count|default:0|intcomma }})
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            <div class="mt-2">
+                <a
+                    href="{% url 'database_subscription:database_subscription_update' subscription.pk %}"
+                    class="action-button"
+                    ><i class="fa fa-edit icon-sm"></i> แก้ไข</a
+                >
+                <a
+                    href="{% url 'database_subscription:database_subscription_delete' subscription.pk %}"
+                    class="action-button delete-button"
+                    ><i class="fa fa-trash icon-sm"></i> ลบ</a
+                >
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header card-header-light">
+            <h5 class="card-title card-title-small"><i class="fa fa-cogs icon-sm"></i>
+                เงื่อนไขการใช้งาน
+            </h5>
+        </div>
+        <div class="card-body card-body-small">
+            <div class="detail-item">
+                <strong><i class="fa fa-check-square icon-sm"></i> มีสิทธิ์
+                    Perpetual License :
+                </strong>
+                <span class="detail-value">
+                    {% if subscription.has_perpetual_license %}
+                        <i class="fa fa-check-circle check-icon"></i>
+                        {% if subscription.perpetual_license_terms %}
+                            <div
+                                style="
+                                    font-style: italic;
+                                    color: #777;
+                                    font-weight: normal;
+                                    margin-left: 2em;
+                                "
+                            >
+                                {{ subscription.perpetual_license_terms }}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <i class="fa fa-times-circle cross-icon"></i>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-users icon-sm"></i>
+                    จำนวนผู้ใช้พร้อมกัน
+                    (Concurrent Users) :
+                </strong>
+                <span class="detail-value">{{ subscription.concurrent_users|default:"-"|intcomma }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-wifi icon-sm"></i>
+                    การเข้าถึงจากภายนอก :
+                </strong>
+                <span class="detail-value">{% if subscription.remote_access_allowed %}
+                    <i class="fa fa-check-circle check-icon"></i>
+                    {% else %}
+                    <i class="fa fa-times-circle cross-icon"></i>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-download icon-sm"></i>
+                    การอนุญาตดาวน์โหลด :
+                </strong>
+                <span class="detail-value">{% if subscription.download_allowed %}
+                    <i class="fa fa-check-circle check-icon"></i>
+                    {% else %}
+                    <i class="fa fa-times-circle cross-icon"></i>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-print icon-sm"></i>
+                    การอนุญาตให้พิมพ์ :
+                </strong>
+                <span class="detail-value">{% if subscription.print_allowed %}
+                    <i class="fa fa-check-circle check-icon"></i>
+                    {% else %}
+                    <i class="fa fa-times-circle cross-icon"></i>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-copy icon-sm"></i>
+                    การอนุญาตให้ทำสำเนา :
+                </strong>
+                <span class="detail-value">{% if subscription.copy_allowed %}
+                    <i class="fa fa-check-circle check-icon"></i>
+                    {% else %}
+                    <i class="fa fa-times-circle cross-icon"></i>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-exchange-alt icon-sm"></i>
+                    การบริการยืมระหว่างห้องสมุด
+                    (ILL) :
+                </strong>
+                <span class="detail-value">
+                    {% if subscription.interlibrary_loan_allowed %}
+                        <i class="fa fa-check-circle check-icon"></i>
+                    {% else %}
+                        <i class="fa fa-times-circle cross-icon"></i>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-file-alt icon-sm"></i>
+                    เงื่อนไขอื่น ๆ :
+                </strong>
+                <span class="detail-value">{{ subscription.usage_conditions_text|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-paperclip icon-sm"></i>
+                    ไฟล์ข้อตกลง (ถ้ามี) :
+                </strong>
+                <span class="detail-value">
+                    {% if subscription.license_agreement_file %}
+                        <a
+                            href="{{ subscription.license_agreement_file.url }}"
+                            target="_blank"
+                            class="file-link"
+                            ><i class="fa fa-file-pdf icon-sm"></i> ดูไฟล์</a
+                        >
+                    {% else %}
+                        <span class="text-muted"><i class="fa fa-ban icon-sm"></i>
+                            ไม่มีไฟล์
+                        </span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header card-header-light">
+            <h5 class="card-title card-title-small"><i class="fa fa-money-bill-wave icon-sm"></i>
+                ข้อมูลการเงิน
+            </h5>
+        </div>
+        <div class="card-body card-body-small">
+            <div class="detail-item">
+                <strong><i class="fa fa-calendar-check icon-sm"></i>
+                    วันที่ชำระเงิน :
+                </strong>
+                <span class="detail-value">{{ subscription.payment_date|date:"d M Y"|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-credit-card icon-sm"></i>
+                    วิธีการชำระเงิน :
+                </strong>
+                <span class="detail-value">{{ subscription.payment_method|default:"-" }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-coins icon-sm"></i>
+                    จำนวนเงิน (บาท) :
+                </strong>
+                <span class="detail-value">{{ subscription.amount_paid_thb|default:"-"|intcomma }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-money-bill-alt icon-sm"></i>
+                    ราคาสำนักพิมพ์ :
+                </strong>
+                <span class="detail-value">
+                    {{ subscription.amount_original_currency|default:"-"|intcomma }}
+                    {% if subscription.original_currency %}
+                    {{ subscription.original_currency }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-piggy-bank icon-sm"></i>
+                    งบประมาณที่ตั้งเบิก :
+                </strong>
+                <span class="detail-value">{{ subscription.budget_allocated|default:"-"|intcomma }}</span>
+            </div>
+            <div class="detail-item">
+                <strong><i class="fa fa-sticky-note icon-sm"></i>
+                    หมายเหตุ :
+                </strong>
+                <span class="detail-value">
+                    {% if subscription.notes == None or subscription.notes == '' or subscription.notes == 'ไม่มี' %}
+                        -
+                    {% else %}
+                        {{ subscription.notes }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <a
+        href="{% url 'database_subscription:database_subscription_list' %}"
+        class="back-link"
+    >
+        <i class="fa fa-arrow-left icon-sm"></i>
+        กลับไปยังหน้ารายการฐานข้อมูลที่บอกรับ
+    </a>
+</div>
+{% endblock %}

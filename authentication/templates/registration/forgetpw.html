@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}ลืมรหัสผ่าน{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="mb-4">ลืมรหัสผ่าน</h2>
+            <p>กรุณากรอกอีเมลแอดเดรสของคุณ ระบบจะส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลของคุณ</p>
+            <form method="POST">
+              {% csrf_token %}
+              {{ form|crispy }}
+              <button type="submit" class="btn btn-primary btn-block">ส่งลิงก์รีเซ็ตรหัสผ่าน</button>
+            </form>
+            <p class="mt-3 text-center"><a href="{% url 'login' %}">กลับสู่หน้าเข้าสู่ระบบ</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

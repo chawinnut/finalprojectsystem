@@ -1,0 +1,8 @@
+<p>เรียนผู้ดูแลระบบ,</p>
+<p>โปรดทราบว่าสัญญาฐานข้อมูลต่อไปนี้กำลังจะหมดอายุ:</p>
+<ul>
+    {% for alert in renewal_alerts %}
+        <li><strong>{{ alert.DB_Name }}</strong> จะหมดอายุในวันที่ {{ alert.subscription_end_date|date:"d M Y" }}</li>
+    {% endfor %}
+</ul>
+<p>กรุณาดำเนินการต่ออายุสัญญาหากจำเป็น</p>

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}ยืนยันการ Archive ข้อมูล{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1>ยืนยันการ Archive ข้อมูล</h1>
+        <p class="lead">คุณแน่ใจหรือไม่ว่าต้องการย้ายข้อมูลปัจจุบันของฐานข้อมูลทั้งหมดเข้าแฟ้มประวัติ?</p>
+        <p>การดำเนินการนี้จะทำการบันทึกสถานะปัจจุบันของฐานข้อมูลและอาจมีผลกระทบต่อข้อมูลที่แสดงอยู่ในหน้าหลัก</p>
+
+        <form method="post" action="{% url 'database_subscription:archive_current_subscriptions' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning">ยืนยันการ Archive ข้อมูล</button>
+            <a href="{% url 'database_subscription:database_subscription_list' %}" class="btn btn-secondary">ยกเลิก</a>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}ระบบค้นหาฐานข้อมูล{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4" style="color:#d5007f;">ค้นหาฐานข้อมูลการบอกรับ</h1>
+
+    <form id="searchForm" method="get" class="mb-5 p-4 rounded-4 shadow-sm border" style="background-color: #fefefe;">
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-4">
+                <label for="{{ form.query.id_for_label }}" class="form-label">{{ form.query.label }}</label>
+                {{ form.query|add_class:"form-control" }}
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <label for="{{ form.collection.id_for_label }}" class="form-label">{{ form.collection.label }}</label>
+                {{ form.collection|add_class:"form-control" }}
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <label for="{{ form.subscription_year.id_for_label }}" class="form-label">{{ form.subscription_year.label }}</label>
+                {{ form.subscription_year|add_class:"form-control" }}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn text-white rounded-pill px-4" style="background-color: #d5007f;">ค้นหา</button>
+            <button type="button" class="btn btn-outline-secondary rounded-pill ms-2 px-4" onclick="clearSearchResults()">ล้างการค้นหา</button>
+        </div>
+    </form>
+
+    <div id="searchResults">
+        {% if results %}
+            <h2 class="mb-3">ผลการค้นหา {{ results|length }} รายการ</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ชื่อฐานข้อมูล</th>
+                            <th>Collections</th>
+                            <th>ปีที่บอกรับ</th>
+                            <th>สถานะ</th>
+                            <th>รายละเอียด</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in results %}
+                            <tr>
+                                <td>{{ result.DB_Name }}</td>
+                                <td>
+                                    {% for detail in result.collection_details.all %}
+                                        <span class="badge text-bg-secondary">{{ detail.collection_name }}</span>{% if not forloop.last %}, {% endif %}
+                                    {% empty %}
+                                        <span class="text-muted">-</span>
+                                    {% endfor %}
+                                </td>
+                                <td>{{ result.renewal_year }}</td>  {# เปลี่ยนตรงนี้ #}
+                                <td>
+                                    {% if result.subscription_status == 'current' %}
+                                        <span class="badge text-bg-success">{{ result.get_subscription_status_display }}</span>
+                                    {% elif result.subscription_status == 'expired' %}
+                                        <span class="badge text-bg-danger">{{ result.get_subscription_status_display }}</span>
+                                    {% elif result.subscription_status == 'future' %}
+                                        <span class="badge text-bg-info">{{ result.get_subscription_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge text-bg-secondary">{{ result.get_subscription_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'database_subscription:database_subscription_detail' pk=result.pk %}" class="btn btn-sm btn-outline-primary">รายละเอียด</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% elif request.GET %}
+            <div class="alert alert-warning mt-3">ไม่พบผลลัพธ์ที่ตรงกับคำค้นหาของคุณ</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function clearSearchResults() {
+        const searchResultsDiv = document.getElementById('searchResults');
+        searchResultsDiv.innerHTML = '';
+
+        const searchForm = document.getElementById('searchForm');
+        searchForm.reset();
+    }
+</script>
+{% endblock %}

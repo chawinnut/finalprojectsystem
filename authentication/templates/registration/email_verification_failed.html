@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}ยืนยันอีเมลไม่สำเร็จ{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body text-center">
+            <h2 class="mb-4 text-danger">การยืนยันอีเมลไม่สำเร็จ</h2>
+            <p>ลิงก์ยืนยันอีเมลไม่ถูกต้อง หรือหมดอายุแล้ว โปรดลองสมัครสมาชิกใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ</p>
+            <a href="{% url 'register' %}" class="btn btn-secondary mt-3">สมัครสมาชิกใหม่</a>
+            <a href="{% url 'home' %}" class="btn btn-link mt-3">กลับสู่หน้าแรก</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

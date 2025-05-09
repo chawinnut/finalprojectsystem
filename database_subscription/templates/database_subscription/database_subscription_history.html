@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}ประวัติการเปลี่ยนแปลงฐานข้อมูลทั้งหมด{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1>ประวัติการเปลี่ยนแปลงฐานข้อมูลทั้งหมด</h1>
+
+        {% if archives %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ฐานข้อมูล</th>
+                        <th>ฟิลด์</th>
+                        <th>ค่าเดิม</th>
+                        <th>ค่าใหม่</th>
+                        <th>วันที่เปลี่ยนแปลง</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for archive in archives %}
+                        <tr>
+                            <td>{{ archive.database_subscription.DB_Name }}</td>
+                            <td>
+                                {% if archive.DB_Name != archive.database_subscription.DB_Name %}ชื่อฐานข้อมูล{% endif %}
+                                {% if archive.collections.all|slugify != archive.database_subscription.collections.all|slugify %}Collections{% endif %}
+                                {% if archive.DBJournal_List != archive.database_subscription.DBJournal_List %}รายชื่อวารสาร{% endif %}
+                                {% if archive.DBEBook_List != archive.database_subscription.DBEBook_List %}รายชื่อ E-Book{% endif %}
+                                {% if archive.subscription_start_date != archive.database_subscription.subscription_start_date %}วันที่เริ่มต้นบอกรับ{% endif %}
+                                {% if archive.subscription_end_date != archive.database_subscription.subscription_end_date %}วันที่สิ้นสุดบอกรับ{% endif %}
+                                {% if archive.renewal_date != archive.database_subscription.renewal_date %}วันที่ต่ออายุ{% endif %}
+                                {% if archive.Vendor_ID != archive.database_subscription.Vendor_ID %}ผู้ขาย{% endif %}
+                                {% if archive.funder != archive.database_subscription.funder %}ผู้ให้ทุน{% endif %}
+                                {% if archive.has_perpetual_license != archive.database_subscription.has_perpetual_license %}มีสิทธิ์การใช้งานถาวร{% endif %}
+                                {% if archive.perpetual_license_terms != archive.database_subscription.perpetual_license_terms %}เงื่อนไขสิทธิ์การใช้งานถาวร{% endif %}
+                                {% if archive.concurrent_users != archive.database_subscription.concurrent_users %}จำนวนผู้ใช้งานพร้อมกัน{% endif %}
+                                {% if archive.remote_access_allowed != archive.database_subscription.remote_access_allowed %}อนุญาตการเข้าถึงจากภายนอก{% endif %}
+                                {% if archive.download_allowed != archive.database_subscription.download_allowed %}อนุญาตการดาวน์โหลด{% endif %}
+                                {% if archive.print_allowed != archive.database_subscription.print_allowed %}อนุญาตการพิมพ์{% endif %}
+                                {% if archive.copy_allowed != archive.database_subscription.copy_allowed %}อนุญาตการทำสำเนา{% endif %}
+                                {% if archive.interlibrary_loan_allowed != archive.database_subscription.interlibrary_loan_allowed %}อนุญาตการยืมระหว่างห้องสมุด{% endif %}
+                                {% if archive.usage_conditions_text != archive.database_subscription.usage_conditions_text %}เงื่อนไขการใช้งานอื่นๆ{% endif %}
+                                {% if archive.license_agreement_file != archive.database_subscription.license_agreement_file|default_if_none:"" %}ไฟล์ข้อตกลงสิทธิ์การใช้งาน{% endif %}
+                            </td>
+                            <td>
+                                {% if archive.DB_Name != archive.database_subscription.DB_Name %}{{ archive.DB_Name }}{% endif %}
+                                {% if archive.collections.all|slugify != archive.database_subscription.collections.all|slugify %}{% for collection in archive.collections.all %}{{ collection.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}
+                                {% if archive.DBJournal_List != archive.database_subscription.DBJournal_List %}{{ archive.DBJournal_List }}{% endif %}
+                                {% if archive.DBEBook_List != archive.database_subscription.DBEBook_List %}{{ archive.DBEBook_List }}{% endif %}
+                                {% if archive.subscription_start_date != archive.database_subscription.subscription_start_date %}{{ archive.subscription_start_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.subscription_end_date != archive.database_subscription.subscription_end_date %}{{ archive.subscription_end_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.renewal_date != archive.database_subscription.renewal_date %}{{ archive.renewal_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.Vendor_ID != archive.database_subscription.Vendor_ID %}{{ archive.Vendor_ID }}{% endif %}
+                                {% if archive.funder != archive.database_subscription.funder %}{{ archive.funder }}{% endif %}
+                                {% if archive.has_perpetual_license != archive.database_subscription.has_perpetual_license %}{{ archive.has_perpetual_license }}{% endif %}
+                                {% if archive.perpetual_license_terms != archive.database_subscription.perpetual_license_terms %}{{ archive.perpetual_license_terms }}{% endif %}
+                                {% if archive.concurrent_users != archive.database_subscription.concurrent_users %}{{ archive.concurrent_users }}{% endif %}
+                                {% if archive.remote_access_allowed != archive.database_subscription.remote_access_allowed %}{{ archive.remote_access_allowed }}{% endif %}
+                                {% if archive.download_allowed != archive.database_subscription.download_allowed %}{{ archive.download_allowed }}{% endif %}
+                                {% if archive.print_allowed != archive.database_subscription.print_allowed %}{{ archive.print_allowed }}{% endif %}
+                                {% if archive.copy_allowed != archive.database_subscription.copy_allowed %}{{ archive.copy_allowed }}{% endif %}
+                                {% if archive.interlibrary_loan_allowed != archive.database_subscription.interlibrary_loan_allowed %}{{ archive.interlibrary_loan_allowed }}{% endif %}
+                                {% if archive.usage_conditions_text != archive.database_subscription.usage_conditions_text %}{{ archive.usage_conditions_text }}{% endif %}
+                                {% if archive.license_agreement_file != archive.database_subscription.license_agreement_file|default_if_none:"" %}{{ archive.license_agreement_file }}{% endif %}
+                            </td>
+                            <td>
+                                {% if archive.DB_Name != archive.database_subscription.DB_Name %}{{ archive.database_subscription.DB_Name }}{% endif %}
+                                {% if archive.collections.all|slugify != archive.database_subscription.collections.all|slugify %}{% for collection in archive.database_subscription.collections.all %}{{ collection.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}
+                                {% if archive.DBJournal_List != archive.database_subscription.DBJournal_List %}{{ archive.database_subscription.DBJournal_List }}{% endif %}
+                                {% if archive.DBEBook_List != archive.database_subscription.DBEBook_List %}{{ archive.database_subscription.DBEBook_List }}{% endif %}
+                                {% if archive.subscription_start_date != archive.database_subscription.subscription_start_date %}{{ archive.database_subscription.subscription_start_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.subscription_end_date != archive.database_subscription.subscription_end_date %}{{ archive.database_subscription.subscription_end_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.renewal_date != archive.database_subscription.renewal_date %}{{ archive.database_subscription.renewal_date|date:"d M Y"|default:"-" }}{% endif %}
+                                {% if archive.Vendor_ID != archive.database_subscription.Vendor_ID %}{{ archive.database_subscription.Vendor_ID }}{% endif %}
+                                {% if archive.funder != archive.database_subscription.funder %}{{ archive.database_subscription.funder }}{% endif %}
+                                {% if archive.has_perpetual_license != archive.database_subscription.has_perpetual_license %}{{ archive.database_subscription.has_perpetual_license }}{% endif %}
+                                {% if archive.perpetual_license_terms != archive.database_subscription.perpetual_license_terms %}{{ archive.database_subscription.perpetual_license_terms }}{% endif %}
+                                {% if archive.concurrent_users != archive.database_subscription.concurrent_users %}{{ archive.database_subscription.concurrent_users }}{% endif %}
+                                {% if archive.remote_access_allowed != archive.database_subscription.remote_access_allowed %}{{ archive.database_subscription.remote_access_allowed }}{% endif %}
+                                {% if archive.download_allowed != archive.database_subscription.download_allowed %}{{ archive.database_subscription.download_allowed }}{% endif %}
+                                {% if archive.print_allowed != archive.database_subscription.print_allowed %}{{ archive.database_subscription.print_allowed }}{% endif %}
+                                {% if archive.copy_allowed != archive.database_subscription.copy_allowed %}{{ archive.database_subscription.copy_allowed }}{% endif %}
+                                {% if archive.interlibrary_loan_allowed != archive.database_subscription.interlibrary_loan_allowed %}{{ archive.database_subscription.interlibrary_loan_allowed }}{% endif %}
+                                {% if archive.usage_conditions_text != archive.database_subscription.usage_conditions_text %}{{ archive.database_subscription.usage_conditions_text }}{% endif %}
+                                {% if archive.license_agreement_file != archive.database_subscription.license_agreement_file|default_if_none:"" %}{{ archive.database_subscription.license_agreement_file }}{% endif %}
+                            </td>
+                            <td>{{ archive.archived_at|date:"d M Y H:i:s" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5">ไม่มีประวัติการเปลี่ยนแปลง</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>ไม่มีประวัติการเปลี่ยนแปลงในขณะนี้</p>
+        {% endif %}
+    </div>
+{% endblock %}

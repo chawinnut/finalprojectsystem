@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}รายการฐานข้อมูลที่บอกรับ{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+    .btn-chula {
+        background-color: #d5007f;
+        color: #fff;
+        border: none;
+    }
+    .btn-chula:hover {
+        background-color: #b4006a;
+        color: #fff;
+    }
+    .btn-outline-chula {
+        border: 1px solid #d5007f;
+        color: #d5007f;
+    }
+    .btn-outline-chula:hover {
+        background-color: #f4d1dc;
+        color: #7b1f3a;
+    }
+    .modern-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        background-color: white;
+    }
+    .modern-table thead {
+        background-color: #fce4ec;
+        color: #7b1f3a;
+        font-size: 0.9em;
+        letter-spacing: 0.05em;
+    }
+    .modern-table th, .modern-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f1f1f1;
+    }
+    .modern-table tbody tr:hover {
+        background-color: #fce4ec;
+    }
+</style>
+
+<div class="container py-5">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div class="flex-grow-1">
+        <h2 class="fw-bold text-dark mb-2">
+            รายการฐานข้อมูลที่บอกรับ
+            {% if selected_year %}
+                ประจำปี {{ selected_year }}
+            {% else %}
+                ทั้งหมด
+            {% endif %}
+        </h2>
+
+        <div class="d-flex align-items-center gap-2 mt-1">
+            <label for="year_filter" class="fw-semibold mb-0">แสดงข้อมูลของปี:</label>
+            <form method="get" class="d-flex align-items-center gap-2 mb-0">
+                <select class="form-select form-select-sm" name="year" id="year_filter" onchange="this.form.submit()">
+                    <option value="{{ request.GET.year|default:current_year }}">ปี {{ request.GET.year|default:current_year }}</option>
+                    {% for year in available_years %}
+                        {% if year != request.GET.year|default:current_year|stringformat:"s" %}
+                            <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>ปี {{ year }}</option>
+                        {% endif %}
+                    {% endfor %}
+                    <option value="">ทั้งหมด</option>
+                </select>
+
+                <a href="{% url 'database_subscription:database_subscription_list' %}" class="btn btn-sm btn-link text-muted">
+                    <i class="fas fa-sync-alt"></i>
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <a href="{% url 'database_subscription:database_subscription_create' %}"
+           class="btn btn-chula rounded-pill px-4 shadow-sm">
+            <i class="fas fa-plus me-2"></i>เพิ่มฐานข้อมูล
+        </a>
+    </div>
+</div>
+
+    
+
+    {% if messages %}
+        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm text-center" role="alert">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+
+    {% if subscriptions %}
+        <div class="table-responsive shadow-sm rounded">
+            <table class="modern-table align-middle">
+                <thead>
+                    <tr>
+                        <th>ชื่อฐานข้อมูล</th>
+                        <th>วันที่เริ่มต้น</th>
+                        <th>วันที่สิ้นสุด (ปีที่บอกรับ)</th>
+                        <th class="text-center">การจัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in subscriptions %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'database_subscription:database_subscription_detail' pk=sub.pk %}"
+                                   class="text-decoration-none text-dark fw-semibold">
+                                    {{ sub.DB_Name }}
+                                </a>
+                            </td>
+                            <td>{{ sub.subscription_start_date|date:"d M Y"|default:"-" }}</td>
+                            <td>{{ sub.subscription_end_date|date:"d M Y"|default:"-" }} ({{ sub.renewal_year }})</td>
+                            <td class="text-center">
+                                <a href="{% url 'database_subscription:database_subscription_update' pk=sub.pk %}"
+                                   class="btn btn-sm btn-outline-chula rounded-pill me-1">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                <form method="post" action="{% url 'database_subscription:database_subscription_delete' pk=sub.pk %}" class="d-inline" onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบ (Archive) ฐานข้อมูลนี้?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill me-1">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                <a href="{% url 'database_subscription:database_subscription_detail' pk=sub.pk %}"
+                                   class="btn btn-sm btn-chula rounded-pill">
+                                    <i class="fas fa-info-circle"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-warning text-center rounded-3 shadow-sm mt-4">
+            ไม่มีฐานข้อมูลที่บอกรับในปี {{ selected_year }}
+        </div>
+    {% endif %}
+
+    <div class="pagination mt-4">
+        <span class="step-links">
+            {% if subscriptions.has_previous %}
+                <a href="?page=1{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">&laquo; หน้าแรก</a>
+                <a href="?page={{ subscriptions.previous_page_number }}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">&lsaquo; ก่อนหน้า</a>
+            {% endif %}
+
+            <span class="current">
+                หน้า {{ subscriptions.number }} จาก {{ subscriptions.paginator.num_pages }}
+            </span>
+
+            {% if subscriptions.has_next %}
+                <a href="?page={{ subscriptions.next_page_number }}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">ถัดไป &rsaquo;</a>
+                <a href="?page={{ subscriptions.paginator.num_pages }}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">หน้าสุดท้าย &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}จัดการกลุ่ม{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">จัดการกลุ่ม</h1>
+    <a href="{% url 'group_management_create' %}" class="btn btn-success mb-3">
+        <i class="fas fa-plus me-2"></i> เพิ่มกลุ่มใหม่
+    </a>
+
+    {% if groups %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ชื่อกลุ่ม</th>
+                    <th>การจัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group in groups %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ group.name }}</td>
+                        <td>
+                            <a href="{% url 'group_management_edit' group.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> แก้ไข
+                            </a>
+                            <a href="{% url 'group_management_delete' group.id %}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash-alt"></i> ลบ
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="3" class="text-center">ไม่มีกลุ่มในระบบ</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="lead">ไม่มีกลุ่มในระบบ</p>
+    {% endif %}
+</div>
+{% endblock %}

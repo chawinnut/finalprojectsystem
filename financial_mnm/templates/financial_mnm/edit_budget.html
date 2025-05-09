@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}แก้ไขงบประมาณปี {{ budget_year }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">แก้ไขงบประมาณปี {{ budget_year }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                {% for field in form %}
+                    {% if field.errors %}
+                        <strong>{{ field.label }}:</strong> {{ field.errors }}<br>
+                    {% endif %}
+                {% endfor %}
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        <div class="mb-3">
+            <label for="{{ form.Budget_Year.id_for_label }}" class="form-label">{{ form.Budget_Year.label }}</label>
+            {{ form.Budget_Year }}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.Total_Budget.id_for_label }}" class="form-label">{{ form.Total_Budget.label }}</label>
+            {{ form.Total_Budget }}
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i> บันทึกการแก้ไข</button>
+        <a href="{% url 'financial_mnm:budget_list' %}" class="btn btn-secondary ms-2"><i class="fas fa-times me-2"></i> ยกเลิก</a>
+    </form>
+</div>
+{% endblock %}

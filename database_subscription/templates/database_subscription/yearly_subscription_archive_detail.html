@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}ประวัติฐานข้อมูลปี {{ year }}{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1>ประวัติฐานข้อมูลปี {{ year }}</h1>
+
+        {% if yearly_archives %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ชื่อฐานข้อมูล</th>
+                        <th>Collections</th>
+                        <th>รายชื่อวารสาร</th>
+                        <th>รายชื่อ E-Book</th>
+                        <th>วันที่เริ่มต้นบอกรับ</th>
+                        <th>วันที่สิ้นสุดบอกรับ</th>
+                        <th>วันที่ต่ออายุ</th>
+                        <th>ผู้ขาย</th>
+                        <th>วันที่ Archive</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for archive in yearly_archives %}
+                        <tr>
+                            <td>{{ archive.DB_Name }}</td>
+                            <td>{{ archive.collections|default:"-" }}</td>
+                            <td>{{ archive.DBJournal_List|default:"-" }}</td>
+                            <td>{{ archive.DBEBook_List|default:"-" }}</td>
+                            <td>{{ archive.subscription_start_date|date:"d M Y"|default:"-" }}</td>
+                            <td>{{ archive.subscription_end_date|date:"d M Y"|default:"-" }}</td>
+                            <td>{{ archive.renewal_date|date:"d M Y"|default:"-" }}</td>
+                            <td>{{ archive.vendor.Vendor_Name|default:"-" }}</td>
+                            <td>{{ archive.archived_at|date:"d M Y H:i:s" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="9">ไม่มีประวัติฐานข้อมูลสำหรับปี {{ year }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href="{% url 'database_subscription:yearly_subscription_archives' %}" class="btn btn-secondary mt-3">กลับไปยังแฟ้มรายปี</a>
+        {% else %}
+            <p>ไม่มีประวัติฐานข้อมูลสำหรับปี {{ year }}</p>
+            <a href="{% url 'database_subscription:yearly_subscription_archives' %}" class="btn btn-secondary mt-3">กลับไปยังแฟ้มรายปี</a>
+        {% endif %}
+    </div>
+{% endblock %}

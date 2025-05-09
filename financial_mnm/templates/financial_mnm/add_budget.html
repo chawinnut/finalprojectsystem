@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}เพิ่มงบประมาณรายปี{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* จัด input ให้ชิดซ้าย + เอาลูกศรออก */
+  input[type=number] {
+    -moz-appearance: textfield !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    text-align: left !important;
+  }
+
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">เพิ่มงบประมาณรายปี</h1>
+    <form method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                {% for field in form %}
+                    {% if field.errors %}
+                        <strong>{{ field.label }}:</strong> {{ field.errors }}<br>
+                    {% endif %}
+                {% endfor %}
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label for="{{ form.Budget_Year.id_for_label }}" class="form-label">{{ form.Budget_Year.label }}</label>
+            {{ form.Budget_Year }}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.Total_Budget.id_for_label }}" class="form-label">{{ form.Total_Budget.label }}</label>
+            <input
+                type="number"
+                class="form-control"
+                id="{{ form.Total_Budget.id_for_html }}"
+                name="{{ form.Total_Budget.html_name }}"
+                value="{{ form.Total_Budget.value|default:'' }}"
+                step="0.01"
+                style="text-align: left;"
+            >
+        </div>
+
+        <button type="submit" class="btn btn-primary">บันทึกงบประมาณ</button>
+        <a href="{% url 'financial_mnm:dashboard' %}" class="btn btn-secondary ms-2">ยกเลิก</a>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/jquery-3.7.0.min.js' %}"></script>
+<script src="{% static 'js/jquery.inputmask.min.js' %}"></script>
+<script>
+  $(document).ready(function () {
+    $("#{{ form.Total_Budget.id_for_html }}").inputmask({
+      alias: 'numeric',
+      groupSeparator: ',',
+      autoGroup: true,
+      digits: 2,
+      digitsOptional: false,
+      allowMinus: false,
+      removeMaskOnSubmit: true,
+      inputmode: 'decimal'
+    });
+  });
+</script>
+{% endblock %}

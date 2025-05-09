@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>ออกจากระบบสำเร็จ - Subscription System</title>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="bg-white p-5 shadow rounded-4">
+        <h2 class="mb-4">ออกจากระบบสำเร็จ</h2>
+        <p class="lead">คุณได้ออกจากระบบเรียบร้อยแล้ว</p>
+        <p><a href="{% url 'home' %}">กลับสู่หน้าแรก</a></p>
+    </div>
+</div>
+{% endblock %}

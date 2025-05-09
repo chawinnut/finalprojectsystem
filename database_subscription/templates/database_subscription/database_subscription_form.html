@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+{% load humanize %}
+
+{% block title %}{% if subscription_form.instance.pk %}แก้ไขฐานข้อมูล{% else %}เพิ่มฐานข้อมูลใหม่{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+    .currency-input-group {
+        display: flex;
+        align-items: center;
+    }
+
+    .currency-input-group > .form-control {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        flex-grow: 1;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+    }
+
+    .currency-select {
+        width: 130px;
+        padding: 0.375rem 0.5rem;
+        font-size: 1rem;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        background-color: #ffffff;
+        border-left: 1px solid #bcbbbb;
+        text-align: center;
+    }
+</style>
+
+        {% if not subscription_form.instance.pk %}
+        <div class="card mb-4 shadow-sm rounded-4 border-0">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-3" style="color: #d5007f;"><i class="fas fa-upload me-2"></i> นำเข้าจากไฟล์ Excel/CSV</h5>
+                <div class="alert alert-warning" role="alert">
+                    <strong>คำเตือน:</strong> การนำเข้าไฟล์เหมาะสำหรับฐานข้อมูลที่บอกรับในปีปัจจุบัน การนำเข้าผ่านไฟล์อาจมีข้อมูลตกหล่นได้ แนะนำให้กรอกข้อมูลด้วยตนเองเพื่อความถูกต้องแม่นยำ
+                </div>
+                <form method="post" enctype="multipart/form-data" action="{% url 'database_subscription:import_subscriptions' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_excel_file" class="form-label">เลือกไฟล์ Excel/CSV</label>
+                        <input type="file" name="excel_file" id="id_excel_file" class="form-control" required>
+                        <div class="form-text mt-2">
+                        โปรดใช้ไฟล์ที่มีรูปแบบดังนี้
+                        <a href="#" data-bs-toggle="collapse" data-bs-target="#importHelp">ดูคำแนะนำ</a>
+                        <div class="collapse mt-2" id="importHelp">
+                            <ul class="list-unstyled small">
+                                <li><strong>วันที่:</strong> รูปแบบปี-เดือน-วัน (YYYY-MM-DD เช่น 2025-01-01)</li>
+                                <li><strong>ปี:</strong> ค.ศ. (เช่น 2025)</li>
+                                <li><strong>สถานะการบอกรับ:</strong> ระบุเป็น <strong>expired</strong> (หมดอายุ), <strong>current</strong> (กำลังบอกรับอยู่ในปัจจุบัน), หรือ <strong>future</strong> (กำลังจะบอกรับในอนาคต) (ตัวพิมพ์เล็ก)</li>
+                                <li><strong>ช่องที่มีให้เลือก (Checkbox):</strong>
+                                    <ul>
+                                        <li>เลือก: กรอก True, 1, on, หรือ yes (ตัวพิมพ์เล็ก)</li>
+                                        <li>ไม่เลือก: กรอก False, 0, off, no, หรือปล่อยว่าง</li>
+                                    </ul>
+                                </li>
+                                <li><strong>จำนวน:</strong> กรอกเป็นตัวเลข</li>
+                                <li><strong>สกุลเงิน:</strong> ระบุเป็นรหัสสกุลเงิน (เช่น USD, GBP, EUR)</li>
+                                <li><strong>ชื่อ Collection:</strong> ระบุชื่อ Collection</li>
+                                <li><strong>ชื่อฐานข้อมูล:</strong> ระบุชื่อฐานข้อมูล (สำคัญ: หากมีหลายแถวสำหรับฐานข้อมูลเดียวกัน ข้อมูลหลักจะถูกนำมาจากแถวแรก)</li>
+                                <li><strong>หมายเหตุ, เงื่อนไข perpetual license, เงื่อนไขการใช้งานอื่น ๆ :</strong> กรอกข้อความตามต้องการ</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary rounded-pill px-4" style="background-color: #d5007f; border-color: #d5007f;"><i class="fas fa-file-upload me-2"></i> อัปโหลด</button>
+            </form>
+            <div class="mt-3">
+                <a href="{% url 'database_subscription:download_import_template_excel' %}" class="btn btn-success me-2 btn-sm"><i class="fas fa-file-excel me-1"></i> ดาวน์โหลด Template Excel</a>
+                <a href="{% url 'database_subscription:download_import_template_csv' %}" class="btn btn-info btn-sm"><i class="fas fa-file-csv me-1"></i> ดาวน์โหลด Template CSV</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="mt-4">
+        {% csrf_token %}
+
+        {% if subscription_form.errors %}
+            <div class="alert alert-danger">
+                {% for field in subscription_form %}
+                    {% if field.errors %}
+                        <strong>{{ field.label }}:</strong> {{ field.errors }}<br>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card shadow-sm rounded-4 border-0 mb-4">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-3" style="color: #d5007f;"><i class="fas fa-info-circle me-2"></i> ข้อมูลหลัก</h5>
+                <div class="mb-3">
+                    <label for="{{ subscription_form.DB_Name.id_for_label }}" class="form-label">ชื่อฐานข้อมูล</label>
+                    {{ subscription_form.DB_Name|add_class:"form-control" }}
+                </div>
+            </div>
+        </div>
+
+        {# ----- ส่วนของการแสดง CollectionDetailFormSet ----- #}
+        <div class="card shadow-sm rounded-4 border-0 mb-4">
+            <div class="card shadow-sm rounded-4 border-0 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3" style="color: #d5007f;"><i class="fas fa-list me-2"></i> รายละเอียด Collections</h5>
+                    {{ collection_detail_formset.management_form }}
+                    <div id="collection-form-list">
+                        {% for form in collection_detail_formset %}
+                            <div class="row mb-3 collection-form">
+                                {% for hidden in form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+                                <div class="col-md-4">
+                                    {{ form.collection_name.label_tag }}
+                                    {{ form.collection_name|add_class:"form-control"|attr:"placeholder: ชื่อ Collection" }}
+                                    {% if form.collection_name.errors %}
+                                        <div class="error">{{ form.collection_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="{{ form.journal_count.id_for_label }}" class="form-label">จำนวนชื่อเรื่องแบบ E-Journals</label>
+                                    {{ form.journal_count|add_class:"form-control amount-input"|attr:"style: max-width: 100px;"|attr:"placeholder: จำนวนชื่อเรื่องแบบ E-Journals"|attr:"type:text" }}
+                                    {% if form.journal_count.errors %}
+                                        <div class="error">{{ form.journal_count.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="{{ form.ebook_count.id_for_label }}" class="form-label">จำนวนชื่อเรื่องแบบ E-Books</label>
+                                    {{ form.ebook_count|add_class:"form-control amount-input"|attr:"style: max-width: 100px;"|attr:"placeholder: จำนวนชื่อเรื่องแบบ E-Books"|attr:"type:text" }}
+                                    {% if form.ebook_count.errors %}
+                                        <div class="error">{{ form.ebook_count.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    {% if form.instance.pk %}
+                                        {{ form.DELETE|add_class:"form-check-input" }}
+                                        <label for="{{ form.DELETE.id_for_label }}" class="form-check-label">{{ form.DELETE.label }}</label>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="add-collection-form">เพิ่ม Collection</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm rounded-4 border-0 mb-4">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-3" style="color: #d5007f;"><i class="fas fa-calendar-alt me-2"></i> ข้อมูลการบอกรับ</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="{{ subscription_form.subscription_start_date.id_for_label }}" class="form-label">วันที่เริ่มต้นการบอกรับ</label>
+                        {{ subscription_form.subscription_start_date|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="{{ subscription_form.subscription_end_date.id_for_label }}" class="form-label">วันที่สิ้นสุดการบอกรับ</label>
+                        {{ subscription_form.subscription_end_date|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="{{ subscription_form.renewal_date.id_for_label }}" class="form-label">กำหนดการต่ออายุ</label>
+                        {{ subscription_form.renewal_date|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ subscription_form.renewal_year.id_for_label }}" class="form-label">ปีที่บอกรับ</label>
+                        {{ subscription_form.renewal_year|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ subscription_form.subscription_status.id_for_label }}" class="form-label">สถานะการบอกรับ</label>
+                        {{ subscription_form.subscription_status|add_class:"form-select" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="empty-collection-form" style="display: none;">
+            {% with form=collection_detail_formset.empty_form %}
+                <div class="row mb-3 collection-form">
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                    <div class="col-md-4">
+                        {{ form.collection_name.label_tag }}
+                        <input type="text" name="collections-__prefix__-collection_name" class="form-control" placeholder="ชื่อ Collection" id="id_collections-__prefix__-collection_name">
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.journal_count.label_tag }}
+                        <input type="text" name="collections-__prefix__-journal_count" class="form-control amount-input" style="max-width: 100px;" placeholder="จำนวนชื่อเรื่องแบบ E-Journals" id="id_collections-__prefix__-journal_count">
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.ebook_count.label_tag }}
+                        <input type="text" name="collections-__prefix__-ebook_count" class="form-control amount-input" style="max-width: 100px;" placeholder="จำนวนชื่อเรื่องแบบ E-Books" id="id_collections-__prefix__-ebook_count">
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <input type="checkbox" name="collections-__prefix__-DELETE" class="form-check-input" id="id_collections-__prefix__-DELETE">
+                        <label for="id_collections-__prefix__-DELETE" class="form-check-label">ลบ</label>
+                    </div>
+                </div>
+            {% endwith %}
+        </div>
+        <div class="card shadow-sm rounded-4 border-0 mb-4">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-3" style="color: #d5007f;"><i class="fas fa-check-circle me-2"></i> เงื่อนไขการใช้งาน</h5>
+                <div class="form-check mb-3">
+                    {{ subscription_form.has_perpetual_license }}
+                    <label for="{{ subscription_form.has_perpetual_license.id_for_label }}" class="form-check-label">สิทธิ์ใช้งานถาวร (Perpetual License)</label>
+                </div>
+                <div class="mb-3">
+                    <label for="{{ subscription_form.perpetual_license_terms.id_for_label }}" class="form-label">เงื่อนไขสิทธิ์ถาวร (Perpetual License)</label>
+                    {{ subscription_form.perpetual_license_terms|add_class:"form-control" }}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ subscription_form.concurrent_users.id_for_label }}" class="form-label">จำนวนผู้ใช้งานพร้อมกัน (Concurrent Users)</label>
+                    {{ subscription_form.concurrent_users|add_class:"form-control" }}
+                </div>
+                <div class="form-check mb-3">
+                    {{ subscription_form.remote_access_allowed }}
+                    <label for="{{ subscription_form.remote_access_allowed.id_for_label }}" class="form-check-label">เข้าถึงจากภายนอก</label>
+                </div>
+                <div class="form-check mb-3">
+                    {{ subscription_form.download_allowed }}
+                    <label for="{{ subscription_form.download_allowed.id_for_label }}" class="form-check-label">อนุญาตการดาวน์โหลด</label>
+                </div>
+                <div class="form-check mb-3">
+                    {{ subscription_form.print_allowed }}
+                    <label for="{{ subscription_form.print_allowed.id_for_label }}" class="form-check-label">อนุญาตการพิมพ์</label>
+                </div>
+                <div class="form-check mb-3">
+                    {{ subscription_form.copy_allowed }}
+                    <label for="{{ subscription_form.copy_allowed.id_for_label }}" class="form-check-label">อนุญาตการทำสำเนา</label>
+                </div>
+                <div class="form-check mb-3">
+                    {{ subscription_form.interlibrary_loan_allowed }}
+                    <label for="{{ subscription_form.interlibrary_loan_allowed.id_for_label }}" class="form-check-label">ยืมระหว่างห้องสมุด (ILL)</label>
+                </div>
+                <div class="mb-3">
+                    <label for="{{ subscription_form.usage_conditions_text.id_for_label }}" class="form-label">เงื่อนไขอื่น ๆ </label>
+                    {{ subscription_form.usage_conditions_text|add_class:"form-control" }}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ subscription_form.license_agreement_file.id_for_label }}" class="form-label">ไฟล์ข้อตกลงสิทธิ์</label>
+                    {{ subscription_form.license_agreement_file|add_class:"form-control" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm rounded-4 border-0 mb-4">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-3" style="color: #d5007f;"><i class="fas fa-money-bill-wave me-2"></i> ข้อมูลการชำระเงิน</h5>
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <label for="{{ subscription_form.payment_date.id_for_label }}" class="form-label">วันที่ชำระเงิน</label>
+                        {{ subscription_form.payment_date|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ subscription_form.amount_paid_thb.id_for_label }}" class="form-label">จำนวนเงิน (บาท)</label>
+                        {{ subscription_form.amount_paid_thb|add_class:"form-control amount-input"|intcomma }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ subscription_form.amount_original_currency.id_for_label }}" class="form-label">ราคาสำนักพิมพ์ (สกุลเงินต้นทาง)</label>
+                        <div class="currency-input-group">
+                            {{ subscription_form.amount_original_currency|add_class:"form-control amount-input" }}
+                            <select class="form-select currency-select" name="{{ subscription_form.original_currency.name }}" id="{{ subscription_form.original_currency.id_for_label }}">
+                                <option value="">สกุลเงิน</option>
+                                <option value="USD" {% if subscription_form.original_currency.value == 'USD' %}selected{% endif %}>USD</option>
+                                <option value="GBP" {% if subscription_form.original_currency.value == 'GBP' %}selected{% endif %}>GBP</option>
+                                <option value="EUR" {% if subscription_form.original_currency.value == 'EUR' %}selected{% endif %}>EUR</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ subscription_form.budget_allocated.id_for_label }}" class="form-label">งบประมาณที่ตั้งเบิก</label>
+                        {{ subscription_form.budget_allocated|add_class:"form-control amount-input"|intcomma }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ subscription_form.notes.id_for_label }}" class="form-label">หมายเหตุ</label>
+            {{ subscription_form.notes|add_class:"form-control" }}
+        </div>
+
+        <button type="submit" class="btn btn-primary rounded-pill px-4" style="background-color: #d5007f; border-color: #d5007f;">บันทึก</button>
+        <a href="{% url 'database_subscription:database_subscription_list' %}" class="btn btn-secondary rounded-pill px-4 ms-2">ยกเลิก</a>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(function() {
+        $('.amount-input').on('input', function() {
+            formatNumberInput(this);
+        });
+
+        $('.amount-input').each(function() {
+            formatNumberInput(this);
+        });
+
+        function formatNumberInput(input) {
+            let value = input.value.replace(/[^\d.]/g, '');
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            input.value = value;
+
+            const numberParts = value.split('.');
+            const integerPart = numberParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            input.value = integerPart + (numberParts[1] ? '.' + numberParts[1] : '');
+        }
+
+        $('#add-collection-form').click(function() {
+            var formIdx = $('#collection-form-list .collection-form').length;
+            var newForm = `
+                <div class="row mb-3 collection-form">
+                    <div class="col-md-4">
+                        <label for="id_collections-__prefix__-collection_name" class="form-label">Collection</label>
+                        <input type="text" name="collections-__prefix__-collection_name" class="form-control" placeholder="ชื่อ Collection" id="id_collections-__prefix__-collection_name">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="id_collections-__prefix__-journal_count" class="form-label">จำนวนชื่อเรื่องแบบ E-Journals</label>
+                        <input type="text" name="collections-__prefix__-journal_count" class="form-control amount-input" style="max-width: 100px;" placeholder="จำนวนชื่อเรื่องแบบ E-Journals" id="id_collections-__prefix__-journal_count">
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.ebook_count.label_tag }}
+                        <input type="text" name="collections-__prefix__-ebook_count" class="form-control amount-input" style="max-width: 100px;" placeholder="จำนวนชื่อเรื่องแบบ E-Books" id="id_collections-__prefix__-ebook_count">
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button type="button" class="btn btn-danger btn-sm delete-dynamic-collection">
+                            <i class="fas fa-trash"></i> ลบ
+                        </button>
+                    </div>
+                </div>
+            `.replace(/__prefix__/g, formIdx);
+
+            $('#collection-form-list').append(newForm);
+            updateManagementForm();
+        });
+
+        function updateManagementForm() {
+            var formCount = $('#collection-form-list .collection-form').length;
+            $('#id_collections-TOTAL_FORMS').val(formCount);
+            $('#id_collections-MAX_NUM_FORMS').val(formCount + 10);
+        }
+
+        // Event listener for dynamically added "ลบ" buttons
+        $(document).on('click', '.delete-dynamic-collection', function() {
+            $(this).closest('.collection-form').remove();
+            updateManagementForm();
+        });
+
+        updateManagementForm();
+    });
+</script>
+{% endblock %}

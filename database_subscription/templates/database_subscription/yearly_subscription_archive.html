@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}แฟ้มเก็บประวัติฐานข้อมูลปีต่างๆ{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1>แฟ้มเก็บประวัติฐานข้อมูลปีต่างๆ</h1>
+
+        {% if archive_years %}
+            <ul class="list-group">
+                {% for year in archive_years %}
+                    <li class="list-group-item">
+                        <a href="{% url 'database_subscription:yearly_subscription_archive_detail' year=year %}">
+                            ประวัติฐานข้อมูลปี {{ year }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>ไม่มีประวัติฐานข้อมูลที่ถูกเก็บถาวรไว้</p>
+        {% endif %}
+    </div>
+{% endblock %}

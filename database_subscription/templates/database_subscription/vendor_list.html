@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}รายชื่อผู้ขาย{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1>รายชื่อผู้ขาย</h1>
+        <a href="{% url 'database_subscription:vendor_create' %}" class="btn btn-success mb-3">เพิ่มผู้ขายใหม่</a>
+
+        <form method="post" enctype="multipart/form-data" action="{% url 'database_subscription:vendor_import' %}" class="mb-3">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="upload_file" class="form-label">นำเข้าข้อมูลผู้ขายจากไฟล์ Excel/CSV:</label>
+                <input type="file" class="form-control" id="upload_file" name="upload_file" accept=".xlsx, .csv">
+            </div>
+            <button type="submit" class="btn btn-primary">นำเข้า</button>
+        </form>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ชื่อผู้ขาย</th>
+                    <th>ผู้ติดต่อ</th>
+                    <th>อีเมล</th>
+                    <th>เบอร์โทรศัพท์</th>
+                    <th>ที่อยู่</th>
+                    <th>การจัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vendor in vendors %}
+                    <tr>
+                        <td>{{ vendor.Vendor_Name }}</td>
+                        <td>{{ vendor.Contact_Person|default:"-" }}</td>
+                        <td>{{ vendor.Email|default:"-" }}</td>
+                        <td>{{ vendor.Phone_Number|default:"-" }}</td>
+                        <td>{{ vendor.Address|default:"-"|truncatechars:100 }}</td>
+                        <td>
+                            <a href="{% url 'database_subscription:vendor_update' vendor.Vendor_ID %}" class="btn btn-sm btn-warning">แก้ไข</a>
+                            <form method="post" action="{% url 'database_subscription:vendor_delete' vendor.Vendor_ID %}" class="d-inline" onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบผู้ขายนี้?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">ลบ</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">ไม่มีข้อมูลผู้ขาย</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% include 'database_subscription/pagination.html' with page=vendors %}
+
+    </div>
+{% endblock %}

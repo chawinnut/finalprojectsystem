@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}เกิดข้อผิดพลาด{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="alert alert-danger" role="alert">
+        <h1>เกิดข้อผิดพลาด!</h1>
+        <p>{{ error_message|default:"มีข้อผิดพลาดที่ไม่คาดคิดเกิดขึ้น." }}</p>
+        <a href="{% url 'financial_mnm:dashboard' %}" class="btn btn-secondary">กลับไปที่ Dashboard</a>
+    </div>
+</div>
+{% endblock %}

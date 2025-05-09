@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load static %}
+{% load user_filters %}
+
+{% block title %}
+    <title>หน้าแรก - Subscription System</title>
+{% endblock %}
+
+{% block content %}
+<style>
+    .welcome-box {
+        animation: fadeSlide 1s ease-out;
+    }
+    @keyframes fadeSlide {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Style สำหรับ Modal */
+    .renewal-alert-modal .modal-content {
+        border: 1px solid #d5007f; /* ขอบชมพู */
+        border-radius: 8px; /* ขอบมนเล็กน้อย */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* เงาเล็กน้อย */
+    }
+
+    .renewal-alert-modal .modal-header {
+        background-color: #fce4ec; /* ชมพูอ่อน */
+        color: #d5007f; /* ข้อความชมพู */
+        border-bottom: 1px solid #f4c2d6;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .renewal-alert-modal .modal-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+
+    .renewal-alert-modal .modal-title i {
+        margin-right: 0.5rem;
+        color: #333; /* ไอคอนสีดำ */
+    }
+
+    .renewal-alert-modal .btn-close {
+        color: #aaa;
+        background-color: transparent;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        opacity: 0.7;
+    }
+
+    .renewal-alert-modal .btn-close:hover {
+        opacity: 1;
+    }
+
+    .renewal-alert-modal .modal-body {
+        padding: 1.5rem;
+        color: #333;
+    }
+
+    .renewal-alert-modal .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #f4c2d6;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .renewal-alert-modal .reminder-options {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .renewal-alert-modal .reminder-options button {
+        border: none;
+        color: #fff;
+        background-color: #d5007f; /* ปรับสีปุ่มให้เป็นชมพู */
+        border-radius: 5px;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .renewal-alert-modal .reminder-options button:hover {
+        background-color: #c2185b; /* เมื่อเลื่อนเมาส์จะเปลี่ยนเป็นสีชมพูเข้ม */
+        transform: translateY(-2px); /* เพิ่มการเคลื่อนไหวเล็กน้อยเมื่อโฮเวอร์ */
+    }
+
+    .renewal-alert-modal .reminder-options button.never {
+        background-color: #555;
+    }
+
+    .renewal-alert-modal .reminder-options button.never:hover {
+        background-color: #333; /* สีเข้มสำหรับตัวเลือก "ไม่แจ้งเตือน" */
+    }
+</style>
+
+<div class="container py-5 text-center">
+    <div class="bg-white p-5 shadow rounded-4 welcome-box">
+        <h1 class="display-6 fw-bold mb-3" style="color: #d5007f;">
+            {% if user.is_authenticated %}
+                สวัสดี! {{ name|capfirst }}
+            {% else %}
+                ยินดีต้อนรับ
+            {% endif %}
+        </h1>
+        <p class="fs-5 text-dark mb-2">
+            ยินดีต้อนรับเข้าสู่เว็บไซต์ระบบจัดการการบอกรับทรัพยากรสารสนเทศอิเล็กทรอนิกส์
+        </p>
+        <p class="text-secondary">
+            สำนักงานวิทยทรัพยากร จุฬาลงกรณ์มหาวิทยาลัย
+        </p>
+
+        {% if not user.is_authenticated %}
+            <div class="mt-4">
+                <a href="{% url 'login' %}" class="btn rounded-pill px-4 py-2 text-white me-2" style="background-color: #d5007f;">เข้าสู่ระบบ</a>
+                <a href="{% url 'register' %}" class="btn btn-outline-dark rounded-pill px-4 py-2">สมัครสมาชิก</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if user.is_authenticated and show_renewal_alert and renewal_warning_list %}
+    <div class="modal fade renewal-alert-modal" id="renewalAlertModal" tabindex="-1" aria-labelledby="renewalAlertModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="renewalAlertModalLabel">
+                        <i class="bi bi-bell-fill me-2"></i> แจ้งเตือนต่ออายุ
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary mb-3">ฐานข้อมูลต่อไปนี้กำลังจะหมดอายุ:</p>
+                    <ul class="list-group list-group-flush">
+                        {% for line in renewal_warning_list %}
+                            <li class="list-group-item">{{ line }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="reminder-options mt-3">
+                        <p class="text-secondary mb-2">แจ้งเตือนอีกครั้งภายใน:</p>
+                        <button type="button" class="btn btn-sm" onclick="setReminder('1')">1 ชั่วโมง</button>
+                        <button type="button" class="btn btn-sm" onclick="setReminder('4')">4 ชั่วโมง</button>
+                        <button type="button" class="btn btn-sm" onclick="setReminder('24')">24 ชั่วโมง</button>
+                        <button type="button" class="btn btn-sm never" onclick="setReminder('never')">ไม่แจ้งเตือนอีก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const renewalAlertModal = new bootstrap.Modal(document.getElementById('renewalAlertModal'));
+            renewalAlertModal.show();
+        });
+
+        function setReminder(delay) {
+            fetch("{% url 'set_renewal_reminder' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ 'delay': delay }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const renewalAlertModal = bootstrap.Modal.getInstance(document.getElementById('renewalAlertModal'));
+                    renewalAlertModal.hide();
+                    console.log('ตั้งค่าการแจ้งเตือนใหม่:', delay);
+                } else {
+                    console.error('เกิดข้อผิดพลาดในการตั้งค่าการแจ้งเตือน:', data.error);
+                }
+            });
+        }
+    </script>
+{% endif %}
+{% endblock %}
