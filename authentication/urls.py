@@ -41,6 +41,7 @@ urlpatterns = [
     path('manage/groups/', views.group_management_list, name='group_management_list'),
     path('manage/groups/edit/<int:group_id>/', views.group_management_edit, name='group_management_edit'),
     path('groups/create/', views.group_management_create, name='group_management_create'),
+    path('groups/delete/<int:group_id>/', views.group_management_delete, name='group_management_delete'),
     path(
     'logout/',
     auth_views.LogoutView.as_view(template_name='registration/logged_out.html'),
