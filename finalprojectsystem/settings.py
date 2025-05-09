@@ -149,9 +149,5 @@ DEFAULT_FROM_EMAIL = 'subscriptionsystem@localhost'
 RENEWAL_ALERT_THRESHOLD = 90
 LOGIN_REDIRECT_URL = '/'
 
-import os
-from dotenv import load_dotenv
-
-load_dotenv()  # โหลด Environment Variables จาก .env (สำหรับ Local Development)
 
 SECRET_KEY = os.environ.get('SECRET_KEY', '50Nd4jMXbLf9ftayKpEFjABCfOrB7Hx1LdM1jA2QmwnVkgamQSPjOYQ0TK-QzZcvo8Y')
