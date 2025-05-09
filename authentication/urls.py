@@ -35,16 +35,10 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('set-renewal-reminder/', views.set_renewal_reminder, name='set_renewal_reminder'),
     path('hide-renewal-alert/', views.hide_renewal_alert, name='hide_renewal_alert'),
-    path('logout/', views.logout_view, name='logout'),
     path('manage/users/', views.user_management_list, name='user_management_list'),
     path('manage/users/edit/<int:user_id>/', views.user_management_edit, name='user_management_edit'),
     path('manage/groups/', views.group_management_list, name='group_management_list'),
     path('manage/groups/edit/<int:group_id>/', views.group_management_edit, name='group_management_edit'),
     path('groups/create/', views.group_management_create, name='group_management_create'),
     path('groups/delete/<int:group_id>/', views.group_management_delete, name='group_management_delete'),
-    path(
-    'logout/',
-    auth_views.LogoutView.as_view(template_name='registration/logged_out.html'),
-    name='logout'
-    )
 ]
