@@ -275,21 +275,24 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for change in changes %}
+                                    {% regroup changes by year as year_groups %}
+                                    {% for year_group in year_groups %}
+                                        {% with year_item=year_group.list|first %}
                                         <tr>
-                                            <td class="fw-medium" style="color: #666;">{{ change.year }}</td>
-                                            <td style="color: #666;">{{ change.original_currency }}</td>
-                                            <td style="color: #666;">{{ change.current_price|default:0|intcomma }}</td>
+                                            <td class="fw-medium" style="color: #666;">{{ year_group.grouper }}</td>
+                                            <td style="color: #666;">{{ year_item.original_currency }}</td>
+                                            <td style="color: #666;">{{ year_item.current_price|default:0|intcomma }}</td>
                                             <td>
-                                                {% if change.percentage_change is not None %}
-                                                    <span class="fw-bold {% if change.percentage_change >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                                        {{ change.percentage_change|floatformat:2 }}%
+                                                {% if year_item.percentage_change is not None %}
+                                                    <span class="fw-bold {% if year_item.percentage_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                        {{ year_item.percentage_change|floatformat:2 }}%
                                                     </span>
                                                 {% else %}
                                                     <span class="text-muted">-</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
+                                        {% endwith %}
                                     {% endfor %}
                                 </tbody>
                             </table>
