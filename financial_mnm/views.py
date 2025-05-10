@@ -108,6 +108,7 @@ def dashboard(request):
 
         database_price_changes_original = {}
         for db_name in db_names:
+            # เรียงข้อมูลตาม renewal_year จากเก่าไปใหม่เพื่อคำนวณ percentage_change
             db_subs = database_subscriptions.filter(DB_Name=db_name).order_by('renewal_year')
             price_history = []
             previous_sub = None
@@ -128,7 +129,9 @@ def dashboard(request):
                     change_data['percentage_change'] = 0.00  # set default value
                 price_history.append(change_data)
                 previous_sub = sub
-            database_price_changes_original[db_name] = price_history
+            
+            # เรียงข้อมูลใหม่จากปีล่าสุดไปเก่าสุด สำหรับการแสดงผล
+            database_price_changes_original[db_name] = sorted(price_history, key=lambda x: x['year'], reverse=True)
 
         # Pagination สำหรับ database_price_changes_original
         items_per_page_original = 5

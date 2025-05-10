@@ -190,13 +190,13 @@
                 <tbody>
                     {% for db_name, changes in database_price_changes_original %}
                         {% if changes %}
-                            {% with latest=changes|first %}
+                            {% with latest_year=changes|first %}
                                 <tr>
                                     <td class="fs-6 fw-medium" style="color: #666;">{{ db_name }}</td>
                                     <td>
-                                        {% if latest.percentage_change is not None %}
-                                            <span class="fs-6 fw-bold {% if latest.percentage_change >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                                {{ latest.percentage_change|floatformat:2 }}% ({{ latest.original_currency }})
+                                        {% if latest_year.percentage_change is not None %}
+                                            <span class="fs-6 fw-bold {% if latest_year.percentage_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                {{ latest_year.percentage_change|floatformat:2 }}% ({{ latest_year.original_currency }})
                                             </span>
                                         {% else %}
                                             <span class="text-muted">-</span>
