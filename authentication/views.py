@@ -212,7 +212,7 @@ def set_renewal_reminder(request):
 
 def logout_view(request):
     logout(request)
-    return render(request, 'registration/logged_out.html')
+    return redirect(reverse('login'))
 
 
 # ส่วนที่ให้ head lib จัดการ role และ access ของคนอื่น ๆ
