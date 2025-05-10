@@ -67,9 +67,11 @@ def database_subscription_list(request):
 def database_subscription_create(request):
     subscription_form = DatabaseSubscriptionForm()
     collection_detail_formset = CollectionDetailFormSet(prefix='collections')
+
     if request.method == 'POST':
         subscription_form = DatabaseSubscriptionForm(request.POST, request.FILES)
         collection_detail_formset = CollectionDetailFormSet(request.POST, prefix='collections')
+
         if subscription_form.is_valid() and collection_detail_formset.is_valid():
             database_subscription = subscription_form.save()
             collection_detail_formset.instance = database_subscription
@@ -102,14 +104,16 @@ def database_subscription_create(request):
                         collection_name = row.get('Collection_Name')
                         journal_count_str = row.get('Journal_Count')
                         ebook_count_str = row.get('EBook_Count')
+                        original_price_str = row.get('Original_Price')  # Get original price
+                        original_currency = row.get('Original_Currency', 'THB') # Get original currency, default to THB
 
                         # Handle None or empty strings
                         journal_count = 0
-                        if journal_count_str:  # Check if not None or empty
+                        if journal_count_str:
                             if isinstance(journal_count_str, str) and journal_count_str.isdigit():
                                 journal_count = int(journal_count_str)
                             elif isinstance(journal_count_str, (int, float)):
-                                journal_count = int(journal_count_str)  # Convert float/int to int
+                                journal_count = int(journal_count_str)
                             else:
                                 messages.warning(request, f"Invalid journal count format for Collection: {collection_name}. Setting to 0.")
 
@@ -122,6 +126,13 @@ def database_subscription_create(request):
                             else:
                                 messages.warning(request, f"Invalid ebook count format for Collection: {collection_name}. Setting to 0.")
 
+                        original_price = 0
+                        if original_price_str:
+                            try:
+                                original_price = float(original_price_str)  # Convert to float first
+                            except ValueError:
+                                messages.warning(request, f"Invalid original price format for Collection: {collection_name}. Setting to 0.")
+
                         existing_collection = CollectionDetail.objects.filter(
                             database_subscription=database_subscription,
                             collection_name=collection_name
@@ -130,6 +141,8 @@ def database_subscription_create(request):
                         if existing_collection:
                             existing_collection.journal_count += journal_count
                             existing_collection.ebook_count += ebook_count
+                            existing_collection.original_price = original_price # update original price
+                            existing_collection.original_currency = original_currency # update original currency
                             existing_collection.save()
                             updated_collection_count += 1
                         else:
@@ -137,7 +150,9 @@ def database_subscription_create(request):
                                 database_subscription=database_subscription,
                                 collection_name=collection_name,
                                 journal_count=journal_count,
-                                ebook_count=ebook_count
+                                ebook_count=ebook_count,
+                                original_price=original_price, # set original price
+                                original_currency=original_currency # set original currency
                             )
                             created_collection_count += 1
                             imported_count += 1
@@ -157,6 +172,7 @@ def database_subscription_create(request):
             return redirect('database_subscription:database_subscription_list')
         else:
             messages.error(request, 'เกิดข้อผิดพลาดในการบันทึกข้อมูล')
+
     return render(request, 'database_subscription/database_subscription_form.html', {
         'subscription_form': subscription_form,
         'collection_detail_formset': collection_detail_formset,
@@ -171,9 +187,11 @@ def database_subscription_update(request, pk):
     subscription = get_object_or_404(DatabaseSubscription, pk=pk)
     subscription_form = DatabaseSubscriptionForm(instance=subscription)
     collection_detail_formset = CollectionDetailFormSet(instance=subscription, prefix='collections')
+
     if request.method == 'POST':
         subscription_form = DatabaseSubscriptionForm(request.POST, request.FILES, instance=subscription)
-        collection_detail_formset = CollectionDetailFormSet(request.POST, prefix='collections', instance=subscription) # ส่ง instance แค่ครั้งเดียว
+        collection_detail_formset = CollectionDetailFormSet(request.POST, prefix='collections', instance=subscription)  # ส่ง instance แค่ครั้งเดียว
+
         if subscription_form.is_valid() and collection_detail_formset.is_valid():
             old_data = model_to_dict(subscription)
             updated_subscription = subscription_form.save()
@@ -183,18 +201,19 @@ def database_subscription_update(request, pk):
                 if old_data.get(field) != new_value:
                     changed_fields[field] = {'old': old_data.get(field), 'new': new_value}
 
-                if changed_fields:
-                    DatabaseSubscriptionChangeLog.objects.create(
-                        database_subscription=updated_subscription,
-                        archived_at=timezone.now(),
-                        change_details=changed_fields
-                    )
-                collection_detail_formset.instance = updated_subscription # Make sure the formset is linked to the saved subscription
-                collection_detail_formset.save()
-                messages.success(request, 'แก้ไขข้อมูลฐานข้อมูลที่บอกรับสำเร็จ!')
-                return redirect('database_subscription:database_subscription_detail', pk=updated_subscription.pk)
-            else:
-                messages.error(request, 'เกิดข้อผิดพลาดในการบันทึกข้อมูล')
+            if changed_fields:
+                DatabaseSubscriptionChangeLog.objects.create(
+                    database_subscription=updated_subscription,
+                    archived_at=timezone.now(),
+                    change_details=changed_fields
+                )
+            collection_detail_formset.instance = updated_subscription 
+            collection_detail_formset.save()
+            messages.success(request, 'แก้ไขข้อมูลฐานข้อมูลที่บอกรับสำเร็จ!')
+            return redirect('database_subscription:database_subscription_detail', pk=updated_subscription.pk)
+        else:
+            messages.error(request, 'เกิดข้อผิดพลาดในการบันทึกข้อมูล')
+
     return render(request, 'database_subscription/database_subscription_form.html', {
         'subscription_form': subscription_form,
         'collection_detail_formset': collection_detail_formset,
