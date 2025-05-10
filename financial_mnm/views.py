@@ -89,8 +89,6 @@ def import_data(request):
 import logging
 logger = logging.getLogger(__name__)
 
-@login_required
-@permission_required('financial_mnm.view_dashboard')
 def dashboard(request):
     try:
         current_year = timezone.now().year
@@ -113,20 +111,44 @@ def dashboard(request):
             price_history = []
             previous_sub = None
             for sub in db_subs:
+                # กำหนดค่าเริ่มต้นสำหรับข้อมูลการเปลี่ยนแปลงราคา
                 change_data = {
                     'year': sub.renewal_year,
-                    'original_currency': sub.original_currency,
-                    'current_price': sub.amount_original_currency,
+                    'current_price': None,
                     'percentage_change': None,
                 }
-                if previous_sub and sub.original_currency == previous_sub.original_currency:
-                    if previous_sub.amount_original_currency is not None and sub.amount_original_currency > 0:
-                        percentage_change = (
-                            (sub.amount_original_currency - previous_sub.amount_original_currency) / previous_sub.amount_original_currency
-                        ) * 100
-                        change_data['percentage_change'] = round(percentage_change, 2)
-                elif previous_sub is None:  # Add this condition
-                    change_data['percentage_change'] = 0.00  # set default value
+                
+                # กรณีมีสกุลเงินต้นทาง (USD, EUR, GBP)
+                if sub.original_currency:
+                    change_data['original_currency'] = sub.original_currency
+                    change_data['current_price'] = sub.amount_original_currency
+                    
+                    # คำนวณเปอร์เซ็นต์การเปลี่ยนแปลงเมื่อมีรายการก่อนหน้า
+                    if previous_sub and previous_sub.original_currency == sub.original_currency:
+                        if previous_sub.amount_original_currency is not None and previous_sub.amount_original_currency > 0:
+                            percentage_change = (
+                                (sub.amount_original_currency - previous_sub.amount_original_currency) / 
+                                previous_sub.amount_original_currency
+                            ) * 100
+                            change_data['percentage_change'] = round(percentage_change, 2)
+                # กรณีไม่มีสกุลเงินต้นทาง (เป็นเงินบาทโดยตรง)
+                else:
+                    change_data['original_currency'] = 'THB'
+                    change_data['current_price'] = sub.amount_paid_thb
+                    
+                    # คำนวณเปอร์เซ็นต์การเปลี่ยนแปลงเมื่อมีรายการก่อนหน้า (สำหรับเงินบาท)
+                    if previous_sub and previous_sub.original_currency is None:
+                        if previous_sub.amount_paid_thb is not None and previous_sub.amount_paid_thb > 0:
+                            percentage_change = (
+                                (sub.amount_paid_thb - previous_sub.amount_paid_thb) / 
+                                previous_sub.amount_paid_thb
+                            ) * 100
+                            change_data['percentage_change'] = round(percentage_change, 2)
+                
+                # กรณีเป็นรายการแรก กำหนดให้ไม่มีการเปลี่ยนแปลง (0%)
+                if previous_sub is None:
+                    change_data['percentage_change'] = 0.00
+                
                 price_history.append(change_data)
                 previous_sub = sub
             
@@ -202,7 +224,6 @@ def dashboard(request):
     except Exception as e:
         logger.error(f"Error in dashboard view: {e}")
         return render(request, 'financial_mnm/error.html', {'error_message': 'เกิดข้อผิดพลาดในการแสดง Dashboard'})
-
 
 @login_required
 def database_price_history_detail_by_name(request, db_name):
