@@ -27,7 +27,7 @@ class DatabaseSubscriptionForm(forms.ModelForm):
 
     original_currency = forms.ChoiceField(
         label='สกุลเงินต้นทาง',
-        choices=[('', 'สกุลเงิน'), ('USD', 'USD'), ('GBP', 'GBP'), ('EUR', 'EUR')],
+        choices=[('', 'สกุลเงิน'), ('USD', 'USD'), ('GBP', 'GBP'), ('EUR', 'EUR'), ('THB', ('THB'))],
         required=False,
         widget=forms.Select(attrs={'class': 'form-select currency-select'})
     )
