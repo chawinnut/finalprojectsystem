@@ -106,7 +106,7 @@ def dashboard(request):
         database_subscriptions = DatabaseSubscription.objects.order_by('DB_Name', 'renewal_year')
         db_names = database_subscriptions.values_list('DB_Name', flat=True).distinct()
 
-        database_price_changes_original = {}  # เปลี่ยนเป็น dict เพื่อให้เข้าถึงได้ด้วยชื่อ DB
+        database_price_changes_original = {}
         for db_name in db_names:
             db_subs = database_subscriptions.filter(DB_Name=db_name).order_by('renewal_year')
             price_history = []
@@ -119,19 +119,20 @@ def dashboard(request):
                     'percentage_change': None,
                 }
                 if previous_sub and sub.original_currency == previous_sub.original_currency:
-                    if previous_sub.amount_original_currency is not None and previous_sub.amount_original_currency > 0:
+                    if previous_sub.amount_original_currency is not None and sub.amount_original_currency > 0:
                         percentage_change = (
                             (sub.amount_original_currency - previous_sub.amount_original_currency) / previous_sub.amount_original_currency
                         ) * 100
                         change_data['percentage_change'] = round(percentage_change, 2)
+                elif previous_sub is None:  # Add this condition
+                    change_data['percentage_change'] = 0.00 # set default value
                 price_history.append(change_data)
                 previous_sub = sub
-            # กรองข้อมูลเพื่อไม่ให้มี None ใน percentage_change
-            database_price_changes_original[db_name] = [item for item in price_history if item['percentage_change'] is not None]
+            database_price_changes_original[db_name] = price_history
 
         # Pagination สำหรับ database_price_changes_original
         items_per_page_original = 5
-        grouped_items_original = list(database_price_changes_original.items()) # สร้าง list ของ tuple (db_name, history)
+        grouped_items_original = list(database_price_changes_original.items())
         paginator_original = Paginator(grouped_items_original, items_per_page_original)
         page_original = request.GET.get('page_original')
         try:
@@ -164,7 +165,7 @@ def dashboard(request):
 
         # Pagination สำหรับ database_subscriptions_grouped
         database_subscriptions_grouped_all = defaultdict(list)
-        for sub in DatabaseSubscription.objects.all():  # ดึงข้อมูลจาก Model ที่ถูกต้อง
+        for sub in DatabaseSubscription.objects.all():
             sub.percentage_price_increase_thb_display = sub.percentage_price_increase_thb
             sub.percentage_price_increase_original_currency_display = sub.percentage_price_increase_original_currency
             database_subscriptions_grouped_all[sub.DB_Name].append(sub)
@@ -188,16 +189,17 @@ def dashboard(request):
             'renewal_alerts': renewal_alerts_paginated,
             'financial_records': financial_records_paginated,
             'database_subscriptions_grouped': database_subscriptions_grouped_paginated,
-            'database_price_changes_original': database_price_changes_original_paginated, # ใช้ paginated version
+            'database_price_changes_original': database_price_changes_original_paginated,
             'page_alerts': renewal_alerts_paginated,
             'page_financial': financial_records_paginated,
             'page_db': database_subscriptions_grouped_paginated,
-            'page_original': database_price_changes_original_paginated, # เพิ่ม page_original
+            'page_original': database_price_changes_original_paginated,
         }
         return render(request, 'financial_mnm/dashboard.html', context)
     except Exception as e:
         logger.error(f"Error in dashboard view: {e}")
         return render(request, 'financial_mnm/error.html', {'error_message': 'เกิดข้อผิดพลาดในการแสดง Dashboard'})
+
 
 @login_required
 def database_price_history_detail_by_name(request, db_name):
