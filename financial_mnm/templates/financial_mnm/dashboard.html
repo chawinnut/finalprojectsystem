@@ -100,61 +100,35 @@
                 <thead class="table-light">
                     <tr>
                         <th class="text-chula-dark-gray">ชื่อฐานข้อมูล</th>
-                        <th class="text-chula-dark-gray">ปีที่บอกรับ</th>
-                        <th class="text-chula-dark-gray">สถานะ</th>
-                        <th class="text-chula-dark-gray">% เพิ่ม (THB)</th>
-                        <th class="text-chula-dark-gray">% เพิ่ม (สกุลเงินเดิม)</th>
-                        <th class="text-chula-dark-gray">รายละเอียด</th>
+                        <th class="text-chula-dark-gray">สถานะล่าสุด</th>
+                        <th class="text-chula-dark-gray">ดูเพิ่มเติม</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for db_name, subs in database_subscriptions_grouped %}
-                        {% for sub in subs %}
-                            <tr>
-                                <td>{{ sub.DB_Name }}</td>
-                                <td>{{ sub.renewal_year }}</td>
-                                <td>
-                                    {% if sub.get_subscription_status_display == 'หมดอายุ' %}
-                                        <span class="badge rounded-pill bg-danger text-white">{{ sub.get_subscription_status_display }}</span>
-                                    {% elif sub.get_subscription_status_display == 'กำลังบอกรับอยู่ในปัจจุบัน' %}
-                                        <span class="badge rounded-pill bg-success text-white">{{ sub.get_subscription_status_display }}</span>
-                                    {% elif sub.get_subscription_status_display == 'กำลังจะบอกรับในอนาคต' %}
-                                        <span class="badge rounded-pill bg-info text-white">{{ sub.get_subscription_status_display }}</span>
+                        <tr>
+                            <td>{{ db_name }}</td>
+                            <td>
+                                {% with latest_sub=subs|last %}
+                                    {% if latest_sub.get_subscription_status_display == 'หมดอายุ' %}
+                                        <span class="badge rounded-pill bg-danger text-white">{{ latest_sub.get_subscription_status_display }}</span>
+                                    {% elif latest_sub.get_subscription_status_display == 'กำลังบอกรับอยู่ในปัจจุบัน' %}
+                                        <span class="badge rounded-pill bg-success text-white">{{ latest_sub.get_subscription_status_display }}</span>
+                                    {% elif latest_sub.get_subscription_status_display == 'กำลังจะบอกรับในอนาคต' %}
+                                        <span class="badge rounded-pill bg-info text-white">{{ latest_sub.get_subscription_status_display }}</span>
                                     {% else %}
-                                        {{ sub.get_subscription_status_display }}
+                                        {{ latest_sub.get_subscription_status_display }}
                                     {% endif %}
-                                </td>
-                                <td>
-                                    {% if sub.percentage_price_increase_thb_display is not None %}
-                                        <span class="{% if sub.percentage_price_increase_thb_display >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                            {{ sub.percentage_price_increase_thb_display|floatformat:2 }}%
-                                        </span>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if sub.percentage_price_increase_original_currency_display is not None %}
-                                        {% if sub.percentage_price_increase_original_currency_display == "Currency mismatch" %}
-                                            <span class="text-warning">สกุลเงินเปลี่ยนแปลง</span>
-                                        {% elif sub.percentage_price_increase_original_currency_display %}
-                                            <span class="{% if sub.percentage_price_increase_original_currency_display >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                                {{ sub.percentage_price_increase_original_currency_display|floatformat:2 }}%
-                                            </span>
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="{% url 'database_subscription:database_subscription_detail' pk=sub.DS_ID %}" class="btn btn-outline-info btn-sm rounded-pill"><i class="fas fa-eye me-1"></i> ดูรายละเอียด</a>
-                                </td>
-                            </tr>
-                        {% endfor %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <button class="btn btn-outline-info btn-sm rounded-pill show-details-modal" data-db-name="{{ db_name }}">
+                                    <i class="fas fa-eye me-1"></i> ดูเพิ่มเติม
+                                </button>
+                            </td>
+                        </tr>
                     {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted">ไม่มีข้อมูลอัตราการเปลี่ยนแปลงราคาฐานข้อมูล</td></tr>
+                        <tr><td colspan="3" class="text-center text-muted">ไม่มีข้อมูลอัตราการเปลี่ยนแปลงราคาฐานข้อมูล</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -192,6 +166,24 @@
                 </ul>
             </nav>
         {% endif %}
+    </div>
+</div>
+
+<div class="modal fade" id="databaseDetailsModal" tabindex="-1" aria-labelledby="databaseDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="databaseDetailsModalLabel">รายละเอียดอัตราการเปลี่ยนแปลงราคา</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="databaseDetailsContent">
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">ปิด</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -271,81 +263,187 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
 
-<div class="card mb-4 shadow rounded-4 border-0" style="background-color: var(--chula-cream);">
-    <div class="card-header rounded-top-4" style="background-color: var(--chula-pink); color: white;">
-        <i class="fas fa-chart-line me-2"></i> อัตราการขึ้นราคาของฐานข้อมูล (ตามสกุลเงินสำนักพิมพ์)
-    </div>
-    <div class="card-body p-4">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-chula-dark-gray">ชื่อฐานข้อมูล</th>
-                        <th class="text-chula-dark-gray">ปี</th>
-                        <th class="text-chula-dark-gray">สกุลเงิน</th>
-                        <th class="text-chula-dark-gray">ราคา (สกุลเงินเดิม)</th>
-                        <th class="text-chula-dark-gray">% เปลี่ยนแปลง</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for db_name, changes in database_price_changes_original %}
-                        {% for change in changes %}
+{% block js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const showDetailsModalButtons = document.querySelectorAll('.show-details-modal');
+        const databaseDetailsModal = document.getElementById('databaseDetailsModal');
+        const databaseDetailsContent = document.getElementById('databaseDetailsContent');
+
+        showDetailsModalButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const dbName = this.dataset.dbName;
+                // เรียกฟังก์ชันเพื่อดึงและแสดงรายละเอียด
+                getDatabaseDetails(dbName); // เพิ่มบรรทัดนี้
+            });
+        });
+
+        // ฟังก์ชัน getDatabaseDetails จะถูกเรียกเมื่อคลิกที่ปุ่ม "ดูเพิ่มเติม"
+        function getDatabaseDetails(dbName) {
+            // ในที่นี้ เราจะจำลองข้อมูลที่จะแสดงใน Modal เนื่องจากเราทำงานบน Front-end
+            // ในสถานการณ์จริง คุณจะต้องเรียก API เพื่อดึงข้อมูลจาก Backend
+
+            // ค้นหาข้อมูลของฐานข้อมูลที่ต้องการ
+            const dbSubscriptions = databaseSubscriptionsGroup[dbName];
+
+            let detailsHTML = `
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
                             <tr>
-                                <td>{{ db_name }}</td>
-                                <td>{{ change.year }}</td>
-                                <td>{{ change.original_currency }}</td>
-                                <td>{{ change.current_price|default:0|intcomma }}</td>
-                                <td>
-                                    {% if change.percentage_change is not None %}
-                                        <span class="{% if change.percentage_change >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                            {{ change.percentage_change|floatformat:2 }}%
-                                        </span>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
+                                <th class="text-chula-dark-gray">ปีที่บอกรับ</th>
+                                <th class="text-chula-dark-gray">สถานะ</th>
+                                <th class="text-chula-dark-gray">% เพิ่ม (THB)</th>
+                                <th class="text-chula-dark-gray">% เพิ่ม (สกุลเงินเดิม)</th>
+                                <th class="text-chula-dark-gray">รายละเอียด</th>
                             </tr>
-                        {% empty %}
-                            <tr><td colspan="5" class="text-center text-muted">ไม่มีข้อมูลการขึ้นราคาของฐานข้อมูล (สกุลเงินเดิม)</td></tr>
-                        {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% if database_price_changes_original.has_other_pages %}
-            <nav aria-label="Page navigation for original currency price changes">
-                <ul class="pagination justify-content-center mt-3">
-                    {% if database_price_changes_original.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link rounded-pill" href="?page_original=1"><i class="fas fa-angle-double-left"></i></a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link rounded-pill" href="?page_original={{ database_price_changes_original.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
-                        </li>
-                    {% endif %}
-                    {% for i in database_price_changes_original.paginator.page_range %}
-                        {% if database_price_changes_original.number == i %}
-                            <li class="page-item active" aria-current="page">
-                                <span class="page-link rounded-pill bg-chula text-white border-chula">{{ i }}</span>
-                            </li>
-                        {% else %}
-                            <li class="page-item">
-                                <a class="page-link rounded-pill" href="?page_original={{ i }}">{{ i }}</a>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-                    {% if database_price_changes_original.has_next %}
-                        <li class="page-item">
-                            <a class="page-link rounded-pill" href="?page_original={{ database_price_changes_original.next_page_number }}"><i class="fas fa-angle-right"></i></a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link rounded-pill" href="?page_original={{ database_price_changes_original.paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% endif %}
-    </div>
-</div>
+                        </thead>
+                        <tbody>
+                            ${dbSubscriptions.map(sub => `
+                                <tr>
+                                    <td>${sub.renewal_year}</td>
+                                    <td>
+                                        ${sub.get_subscription_status_display === 'หมดอายุ' ?
+                                            `<span class="badge rounded-pill bg-danger text-white">${sub.get_subscription_status_display}</span>` :
+                                            sub.get_subscription_status_display === 'กำลังบอกรับอยู่ในปัจจุบัน' ?
+                                            `<span class="badge rounded-pill bg-success text-white">${sub.get_subscription_status_display}</span>` :
+                                            `<span class="badge rounded-pill bg-info text-white">${sub.get_subscription_status_display}</span>`
+                                        }
+                                    </td>
+                                    <td>
+                                        ${sub.percentage_price_increase_thb_display !== null ?
+                                            `<span class="${sub.percentage_price_increase_thb_display >= 0 ? 'text-success' : 'text-danger'}">
+                                                ${sub.percentage_price_increase_thb_display.toFixed(2)}%
+                                            </span>` :
+                                            `<span class="text-muted">-</span>`
+                                        }
+                                    </td>
+                                    <td>
+                                        ${sub.percentage_price_increase_original_currency_display !== null ?
+                                            sub.percentage_price_increase_original_currency_display === "Currency mismatch" ?
+                                            `<span class="text-warning">สกุลเงินเปลี่ยนแปลง</span>` :
+                                            `<span class="${sub.percentage_price_increase_original_currency_display >= 0 ? 'text-success' : 'text-danger'}">
+                                                ${sub.percentage_price_increase_original_currency_display.toFixed(2)}%
+                                            </span>` :
+                                            `<span class="text-muted">-</span>`
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="/database_subscription/detail/${sub.DS_ID}" class="btn btn-outline-info btn-sm rounded-pill"><i class="fas fa-eye me-1"></i> ดูรายละเอียด</a>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            databaseDetailsContent.innerHTML = detailsHTML;
+            // เปิด Modal
+            $(databaseDetailsModal).modal('show');
+        }
+
+        // Mock ข้อมูล databaseSubscriptionsGroup (แทนที่ด้วยข้อมูลจริงจาก Django)
+        const databaseSubscriptionsGroup = {
+            "EndNote": [
+                {
+                    "DS_ID": 1,
+                    "DB_Name": "EndNote",
+                    "renewal_year": 2025,
+                    "get_subscription_status_display": "กำลังบอกรับอยู่ในปัจจุบัน",
+                    "percentage_price_increase_thb_display": 0.00,
+                    "percentage_price_increase_original_currency_display": 100.00,
+                    "amount_original_currency": 100,
+                    "original_currency": "USD"
+                },
+                {
+                    "DS_ID": 2,
+                    "DB_Name": "EndNote",
+                    "renewal_year": 2024,
+                    "get_subscription_status_display": "กำลังบอกรับอยู่ในปัจจุบัน",
+                    "percentage_price_increase_thb_display": 0.00,
+                    "percentage_price_increase_original_currency_display": 167.38,
+                    "amount_original_currency": 150,
+                    "original_currency": "USD"
+                },
+                {
+                    "DS_ID": 3,
+                    "DB_Name": "EndNote",
+                    "renewal_year": 2023,
+                    "get_subscription_status_display": "กำลังบอกรับอยู่ในปัจจุบัน",
+                    "percentage_price_increase_thb_display": null,
+                    "percentage_price_increase_original_currency_display": null,
+                    "amount_original_currency": 90,
+                    "original_currency": "USD"
+                }
+            ],
+            "Web of Science": [
+                {
+                    "DS_ID": 4,
+                    "DB_Name": "Web of Science",
+                    "renewal_year": 2025,
+                    "get_subscription_status_display": "กำลังบอกรับอยู่ในปัจจุบัน",
+                    "percentage_price_increase_thb_display": 5.00,
+                    "percentage_price_increase_original_currency_display": 2.00,
+                    "amount_original_currency": 204,
+                    "original_currency": "USD"
+                },
+                {
+                    "DS_ID": 5,
+                    "DB_Name": "Web of Science",
+                    "renewal_year": 2024,
+                    "get_subscription_status_display": "กำลังบอกรับอยู่ในปัจจุบัน",
+                    "percentage_price_increase_thb_display": 10.00,
+                    "percentage_price_increase_original_currency_display": 7.00,
+                    "amount_original_currency": 200,
+                    "original_currency": "USD"
+                },
+                {
+                    "DS_ID": 6,
+                    "DB_Name": "Web of Science",
+                    "renewal_year": 2023,
+                    "get_subscription_status_display": "หมดอายุ",
+                    "percentage_price_increase_thb_display": null,
+                    "percentage_price_increase_original_currency_display": null,
+                    "amount_original_currency": 187,
+                    "original_currency": "USD"
+                }
+            ],
+             "Scopus": [
+                {
+                    "DS_ID": 7,
+                    "DB_Name": "Scopus",
+                    "renewal_year": 2025,
+                    "get_subscription_status_display": "กำลังบอกรับอยู่ในปัจจุบัน",
+                    "percentage_price_increase_thb_display": 5.00,
+                    "percentage_price_increase_original_currency_display": 2.00,
+                    "amount_original_currency": 204,
+                    "original_currency": "EUR"
+                },
+                {
+                    "DS_ID": 8,
+                    "DB_Name": "Scopus",
+                    "renewal_year": 2024,
+                    "get_subscription_status_display": "กำลังบอกรับอยู่ในปัจจุบัน",
+                    "percentage_price_increase_thb_display": 10.00,
+                    "percentage_price_increase_original_currency_display": 7.00,
+                    "amount_original_currency": 200,
+                    "original_currency": "EUR"
+                },
+                {
+                    "DS_ID": 9,
+                    "DB_Name": "Scopus",
+                    "renewal_year": 2023,
+                    "get_subscription_status_display": "หมดอายุ",
+                    "percentage_price_increase_thb_display": null,
+                    "percentage_price_increase_original_currency_display": null,
+                    "amount_original_currency": 187,
+                    "original_currency": "EUR"
+                }
+            ],
+        };
+    });
+</script>
 {% endblock %}
