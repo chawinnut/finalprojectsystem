@@ -214,7 +214,6 @@ def database_subscription_delete(request, pk):
 
 
 def parse_date(date_string):
-    """พยายามแปลง string เป็น datetime.date โดยรองรับหลายรูปแบบ"""
     date_formats = ['%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%m/%d/%Y', '%d/%m/%Y']
     if date_string and isinstance(date_string, str):
         date_string = date_string.strip()
@@ -240,9 +239,6 @@ def parse_decimal(decimal_string):
 @login_required
 @permission_required('database_subscription.add_databasesubscription')
 def import_subscriptions(request):
-    """
-    จัดการการนำเข้าข้อมูลฐานข้อมูลจากการบอกรับเป็นสมาชิกจากไฟล์ Excel/CSV.
-    """
     if request.method == 'POST' and request.FILES.get('upload_file'):
         uploaded_file = request.FILES['upload_file']
         fs = FileSystemStorage()

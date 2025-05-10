@@ -13,7 +13,7 @@ from django.core.serializers import serialize
 from django.conf import settings
 from datetime import timedelta
 from authentication.models import CustomUser
-
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 #from database_subscription.models import Vendor, Payment
 #from database_subscription.forms import VendorForm, PaymentForm
 from django.core.mail import send_mail
@@ -46,7 +46,6 @@ def financial_management_list(request):
 
     financial_data = []
     for record in financial_records:
-        # หา DatabaseSubscription ที่อาจเกี่ยวข้อง
         subscriptions = DatabaseSubscription.objects.filter(
             Q(subscription_start_date__year__lte=current_year) & Q(subscription_end_date__year__gte=current_year),
             Vendor_ID=record.vendor
@@ -79,8 +78,6 @@ def import_data(request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             upload_file = request.FILES['upload_file']
-            # --- Logic สำหรับอ่านและบันทึกข้อมูลจากไฟล์ (Excel/CSV) ---
-            # --- คุณจะต้องระบุรูปแบบไฟล์และ Fields ที่ต้องการนำเข้า ---
             messages.success(request, 'นำเข้าข้อมูลสำเร็จ!')
             return redirect('financial_mnm:some_list_view') # เปลี่ยน 'some_list_view'
         else:
@@ -109,12 +106,12 @@ def dashboard(request):
          today = timezone.now().date()
          email_sent = set()
 
-         database_subscriptions = DatabaseSubscription.objects.all() # ดึงข้อมูลฐานข้อมูลทั้งหมด
-         database_subscriptions_grouped = defaultdict(list)
+         database_subscriptions = DatabaseSubscription.objects.all()
+         database_subscriptions_grouped_all = defaultdict(list)
          for sub in database_subscriptions:
              sub.percentage_price_increase_thb_display = sub.percentage_price_increase_thb
              sub.percentage_price_increase_original_currency_display = sub.percentage_price_increase_original_currency
-             database_subscriptions_grouped[sub.DB_Name].append(sub)
+             database_subscriptions_grouped_all[sub.DB_Name].append(sub)
 
              if sub.renewal_date:
                  one_month_before = sub.renewal_date - timedelta(days=30)
@@ -151,21 +148,53 @@ def dashboard(request):
                  if alert_data['alert_level']:
                      renewal_alerts.append(alert_data)
 
-         financial_records = FinancialManagement.objects.order_by('-Budget_Year')
+         # Pagination สำหรับ renewal_alerts
+         paginator_alerts = Paginator(renewal_alerts, 10) 
+         page_alerts = request.GET.get('page_alerts')
+         try:
+             renewal_alerts_paginated = paginator_alerts.page(page_alerts)
+         except PageNotAnInteger:
+             renewal_alerts_paginated = paginator_alerts.page(1)
+         except EmptyPage:
+             renewal_alerts_paginated = paginator_alerts.page(paginator_alerts.num_pages)
+
+         financial_records_all = FinancialManagement.objects.order_by('-Budget_Year')
+         
+         paginator_financial = Paginator(financial_records_all, 5)
+         page_financial = request.GET.get('page_financial')
+         try:
+             financial_records_paginated = paginator_financial.page(page_financial)
+         except PageNotAnInteger:
+             financial_records_paginated = paginator_financial.page(1)
+         except EmptyPage:
+             financial_records_paginated = paginator_financial.page(paginator_financial.num_pages)
+
+         # Pagination
+         items_per_page_db = 3 
+         grouped_items = list(database_subscriptions_grouped_all.items())
+         paginator_db = Paginator(grouped_items, items_per_page_db)
+         page_db = request.GET.get('page_db')
+         try:
+             database_subscriptions_grouped_paginated = paginator_db.page(page_db)
+         except PageNotAnInteger:
+             database_subscriptions_grouped_paginated = paginator_db.page(1)
+         except EmptyPage:
+             database_subscriptions_grouped_paginated = paginator_db.page(paginator_db.num_pages)
 
          context = {
              'current_year': current_year,
              'total_budget': total_budget,
              'total_spent_current_year': total_spent_current_year,
              'remaining_budget': remaining_budget,
-             'renewal_alerts': renewal_alerts,
-             'financial_records': financial_records,
-             'database_subscriptions_grouped': database_subscriptions_grouped,
+             'renewal_alerts': renewal_alerts_paginated, 
+             'financial_records': financial_records_paginated, 
+             'database_subscriptions_grouped': database_subscriptions_grouped_paginated,
+             'page_alerts': renewal_alerts_paginated, 
+             'page_financial': financial_records_paginated,
+             'page_db': database_subscriptions_grouped_paginated,
          }
          return render(request, 'financial_mnm/dashboard.html', context)
      except Exception as e:
-         import logging
-         logger = logging.getLogger(__name__)
          logger.error(f"Error in dashboard view: {e}")
          return render(request, 'financial_mnm/error.html', {'error_message': 'เกิดข้อผิดพลาดในการแสดง Dashboard'})
      
@@ -295,7 +324,7 @@ def calendar_create(request):
         form = CalendarEventForm(request.POST)
         if form.is_valid():
             event = form.save(commit=False)
-            event.created_by = request.user  # กำหนดผู้สร้างเป็นผู้ใช้ที่กำลังล็อกอิน
+            event.created_by = request.user 
             event.save()
             return redirect('financial_mnm:calendar')
     else:

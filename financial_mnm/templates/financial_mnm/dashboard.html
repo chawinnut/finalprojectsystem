@@ -52,6 +52,39 @@
                         </tbody>
                     </table>
                 </div>
+                {% if financial_records.has_other_pages %}
+                    <nav aria-label="Page navigation for financial records">
+                        <ul class="pagination justify-content-center mt-3">
+                            {% if financial_records.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link rounded-pill" href="?page_financial=1">&laquo; หน้าแรก</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link rounded-pill" href="?page_financial={{ financial_records.previous_page_number }}">ก่อนหน้า</a>
+                                </li>
+                            {% endif %}
+                            {% for i in financial_records.paginator.page_range %}
+                                {% if financial_records.number == i %}
+                                    <li class="page-item active" aria-current="page">
+                                        <span class="page-link rounded-pill bg-chula border-chula">{{ i }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link rounded-pill" href="?page_financial={{ i }}">{{ i }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if financial_records.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link rounded-pill" href="?page_financial={{ financial_records.next_page_number }}">ถัดไป</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link rounded-pill" href="?page_financial={{ financial_records.paginator.num_pages }}">หน้าสุดท้าย &raquo;</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -75,46 +108,80 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for db_name, subs in database_subscriptions_grouped_with_change.items %}
+                    {% for db_name, subs in database_subscriptions_grouped %}
                         {% for sub in subs %}
-                            </tr>
-                                </tr>
-                                    <td>{{ sub.DB_Name }}</td>
-                                    <td>{{ sub.renewal_year }}</td>
-                                    <td>{{ sub.get_subscription_status_display }}</td>
-                                    <td>
-                                        {% if sub.percentage_price_increase_thb_display is not None %}
-                                            <span class="{% if sub.percentage_price_increase_thb_display >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                                {{ sub.percentage_price_increase_thb_display|floatformat:2 }}%
+                            <tr>
+                                <td>{{ sub.DB_Name }}</td>
+                                <td>{{ sub.renewal_year }}</td>
+                                <td>{{ sub.get_subscription_status_display }}</td>
+                                <td>
+                                    {% if sub.percentage_price_increase_thb_display is not None %}
+                                        <span class="{% if sub.percentage_price_increase_thb_display >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ sub.percentage_price_increase_thb_display|floatformat:2 }}%
+                                        </span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if sub.percentage_price_increase_original_currency_display is not None %}
+                                        {% if sub.percentage_price_increase_original_currency_display == "Currency mismatch" %}
+                                            <span class="text-warning">สกุลเงินเปลี่ยนแปลง</span>
+                                        {% elif sub.percentage_price_increase_original_currency_display %}
+                                            <span class="{% if sub.percentage_price_increase_original_currency_display >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                {{ sub.percentage_price_increase_original_currency_display|floatformat:2 }}%
                                             </span>
                                         {% else %}
                                             -
                                         {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if sub.percentage_price_increase_original_currency_display is not None %}
-                                            {% if sub.percentage_price_increase_original_currency_display == "Currency mismatch" %}
-                                                <span class="text-warning">สกุลเงินเปลี่ยนแปลง</span>
-                                            {% elif sub.percentage_price_increase_original_currency_display %}
-                                                <span class="{% if sub.percentage_price_increase_original_currency_display >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                                    {{ sub.percentage_price_increase_original_currency_display|floatformat:2 }}%
-                                                </span>
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'database_subscription:database_subscription_detail' pk=sub.DS_ID %}" class="btn btn-outline-info btn-sm rounded-pill"><i class="fas fa-eye me-1"></i> ดูรายละเอียด</a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'database_subscription:database_subscription_detail' pk=sub.DS_ID %}" class="btn btn-outline-info btn-sm rounded-pill"><i class="fas fa-eye me-1"></i> ดูรายละเอียด</a>
+                                </td>
+                            </tr>
                         {% endfor %}
-                    </tbody>
+                    {% empty %}
+                        <tr><td colspan="6" class="text-center">ไม่มีข้อมูลอัตราการเปลี่ยนแปลงราคาฐานข้อมูล</td></tr>
+                    {% endfor %}
+                </tbody>
             </table>
         </div>
+        {% if page_db.has_other_pages %}
+            <nav aria-label="Page navigation for database subscriptions">
+                <ul class="pagination justify-content-center mt-3">
+                    {% if page_db.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link rounded-pill" href="?page_db=1">&laquo; หน้าแรก</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link rounded-pill" href="?page_db={{ page_db.previous_page_number }}">ก่อนหน้า</a>
+                        </li>
+                    {% endif %}
+                    {% for i in page_db.paginator.page_range %}
+                        {% if page_db.number == i %}
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link rounded-pill bg-chula border-chula">{{ i }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link rounded-pill" href="?page_db={{ i }}">{{ i }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_db.has_next %}
+                        <li class="page-item">
+                            <a class="page-link rounded-pill" href="?page_db={{ page_db.next_page_number }}">ถัดไป</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link rounded-pill" href="?page_db={{ page_db.paginator.num_pages }}">หน้าสุดท้าย &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
     </div>
 </div>
 
@@ -159,6 +226,39 @@
                 </tbody>
             </table>
         </div>
+        {% if page_alerts.has_other_pages %}
+            <nav aria-label="Page navigation for renewal alerts">
+                <ul class="pagination justify-content-center mt-3">
+                    {% if page_alerts.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link rounded-pill" href="?page_alerts=1">&laquo; หน้าแรก</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link rounded-pill" href="?page_alerts={{ page_alerts.previous_page_number }}">ก่อนหน้า</a>
+                        </li>
+                    {% endif %}
+                    {% for i in page_alerts.paginator.page_range %}
+                        {% if page_alerts.number == i %}
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link rounded-pill bg-chula border-chula">{{ i }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link rounded-pill" href="?page_alerts={{ i }}">{{ i }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_alerts.has_next %}
+                        <li class="page-item">
+                            <a class="page-link rounded-pill" href="?page_alerts={{ page_alerts.next_page_number }}">ถัดไป</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link rounded-pill" href="?page_alerts={{ page_alerts.paginator.num_pages }}">หน้าสุดท้าย &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
