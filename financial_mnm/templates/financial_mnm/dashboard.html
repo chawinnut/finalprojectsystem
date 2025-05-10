@@ -90,108 +90,7 @@
     </div>
 </div>
 
-<div class="card mb-4 shadow rounded-4 border-0" style="background-color: var(--chula-cream);">
-    <div class="card-header rounded-top-4" style="background-color: var(--chula-pink); color: white;">
-        <i class="fas fa-percentage me-2"></i> อัตราการเปลี่ยนแปลงราคาฐานข้อมูล
-    </div>
-    <div class="card-body p-4">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-chula-dark-gray">ชื่อฐานข้อมูล</th>
-                        <th class="text-chula-dark-gray">สถานะ</th>
-                        <th class="text-chula-dark-gray">% เพิ่ม (THB)</th>
-                        <th class="text-chula-dark-gray">% เพิ่ม (สกุลเงินเดิม)</th>
-                        <th class="text-chula-dark-gray">รายละเอียด</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for db_name, subs in database_subscriptions_grouped %}
-                        {% for sub in subs %}
-                            <tr>
-                                <td>{{ sub.DB_Name }}</td>
-                                <td>
-                                    {% if sub.get_subscription_status_display == 'หมดอายุ' %}
-                                        <span class="badge rounded-pill bg-danger text-white">{{ sub.get_subscription_status_display }}</span>
-                                    {% elif sub.get_subscription_status_display == 'กำลังบอกรับอยู่ในปัจจุบัน' %}
-                                        <span class="badge rounded-pill bg-success text-white">{{ sub.get_subscription_status_display }}</span>
-                                    {% elif sub.get_subscription_status_display == 'กำลังจะบอกรับในอนาคต' %}
-                                        <span class="badge rounded-pill bg-info text-white">{{ sub.get_subscription_status_display }}</span>
-                                    {% else %}
-                                        {{ sub.get_subscription_status_display }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if sub.percentage_price_increase_thb_display is not None %}
-                                        <span class="{% if sub.percentage_price_increase_thb_display >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                            {{ sub.percentage_price_increase_thb_display|floatformat:2 }}%
-                                        </span>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if sub.percentage_price_increase_original_currency_display is not None %}
-                                        {% if sub.percentage_price_increase_original_currency_display == "Currency mismatch" %}
-                                            <span class="text-warning">สกุลเงินเปลี่ยนแปลง</span>
-                                        {% elif sub.percentage_price_increase_original_currency_display %}
-                                            <span class="{% if sub.percentage_price_increase_original_currency_display >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                                {{ sub.percentage_price_increase_original_currency_display|floatformat:2 }}%
-                                            </span>
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="{% url 'database_subscription:database_subscription_detail' pk=sub.DS_ID %}" class="btn btn-outline-info btn-sm rounded-pill"><i class="fas fa-eye me-1"></i> ดูรายละเอียด</a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted">ไม่มีข้อมูลอัตราการเปลี่ยนแปลงราคาฐานข้อมูล</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% if page_db.has_other_pages %}
-            <nav aria-label="Page navigation for database subscriptions">
-                <ul class="pagination justify-content-center mt-3">
-                    {% if page_db.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link rounded-pill" href="?page_db=1"><i class="fas fa-angle-double-left"></i></a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link rounded-pill" href="?page_db={{ page_db.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
-                        </li>
-                    {% endif %}
-                    {% for i in page_db.paginator.page_range %}
-                        {% if page_db.number == i %}
-                            <li class="page-item active" aria-current="page">
-                                <span class="page-link rounded-pill bg-chula text-white border-chula">{{ i }}</span>
-                            </li>
-                        {% else %}
-                            <li class="page-item">
-                                <a class="page-link rounded-pill" href="?page_db={{ i }}">{{ i }}</a>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-                    {% if page_db.has_next %}
-                        <li class="page-item">
-                            <a class="page-link rounded-pill" href="?page_db={{ page_db.next_page_number }}"><i class="fas fa-angle-right"></i></a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link rounded-pill" href="?page_db={{ page_db.paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% endif %}
-    </div>
-</div>
+<!-- ลบแบบฟอร์มที่ซ้ำซ้อน -->
 
 <div class="card mb-4 shadow rounded-4 border-0" style="background-color: var(--chula-cream);">
     <div class="card-header rounded-top-4" style="background-color: var(--chula-pink); color: white;">
@@ -270,18 +169,18 @@
     </div>
 </div>
 
-<div class="card mb-4 shadow rounded-4 border-0" style="background-color: var(--chula-cream);">
+<div class="card mb-4 shadow rounded-4 border-0" style="background-color: #FFFFFF;">
     <div class="card-header rounded-top-4" style="background-color: var(--chula-pink); color: white;">
-        <i class="fas fa-chart-line me-2"></i> อัตราการขึ้นราคาของฐานข้อมูล
+        <i class="fas fa-percentage me-2"></i> อัตราการเปลี่ยนแปลงราคาฐานข้อมูล
     </div>
     <div class="card-body p-4">
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-light">
+            <table class="table table-striped table-hover border">
+                <thead style="background-color: #f0f0f0;">
                     <tr>
-                        <th class="text-chula-dark-gray">ชื่อฐานข้อมูล</th>
-                        <th class="text-chula-dark-gray">อัตราการเปลี่ยนแปลงราคาปีล่าสุด</th>
-                        <th class="text-chula-dark-gray">ดูเพิ่มเติม</th>
+                        <th class="fw-bold fs-6">ชื่อฐานข้อมูล</th>
+                        <th class="fw-bold fs-6">อัตราการเปลี่ยนแปลงราคาปีล่าสุด</th>
+                        <th class="fw-bold fs-6">ดูเพิ่มเติม</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -289,10 +188,10 @@
                         {% if changes %}
                             {% with latest=changes|first %}
                                 <tr>
-                                    <td>{{ db_name }}</td>
+                                    <td class="fs-6 fw-medium">{{ db_name }}</td>
                                     <td>
                                         {% if latest.percentage_change is not None %}
-                                            <span class="{% if latest.percentage_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            <span class="fs-6 fw-bold {% if latest.percentage_change >= 0 %}text-success{% else %}text-danger{% endif %}">
                                                 {{ latest.percentage_change|floatformat:2 }}% ({{ latest.original_currency }})
                                             </span>
                                         {% else %}
@@ -300,7 +199,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-outline-info btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#historyModal{{ forloop.counter }}">
+                                        <button type="button" class="btn btn-primary btn-sm rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#historyModal{{ forloop.counter }}">
                                             <i class="fas fa-history me-1"></i> ดูประวัติ
                                         </button>
                                     </td>
@@ -356,31 +255,31 @@
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header" style="background-color: var(--chula-pink); color: white;">
-                        <h5 class="modal-title" id="historyModalLabel{{ forloop.counter }}">
+                        <h5 class="modal-title fw-bold" id="historyModalLabel{{ forloop.counter }}">
                             <i class="fas fa-history me-2"></i> ประวัติการเปลี่ยนแปลงราคา - {{ db_name }}
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body bg-light">
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead class="table-light">
+                            <table class="table table-striped table-hover border bg-white">
+                                <thead style="background-color: #f0f0f0;">
                                     <tr>
-                                        <th class="text-chula-dark-gray">ปี</th>
-                                        <th class="text-chula-dark-gray">สกุลเงิน</th>
-                                        <th class="text-chula-dark-gray">ราคา (สกุลเงินเดิม)</th>
-                                        <th class="text-chula-dark-gray">% เปลี่ยนแปลง</th>
+                                        <th class="fw-bold">ปี</th>
+                                        <th class="fw-bold">สกุลเงิน</th>
+                                        <th class="fw-bold">ราคา (สกุลเงินเดิม)</th>
+                                        <th class="fw-bold">% เปลี่ยนแปลง</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for change in changes %}
                                         <tr>
-                                            <td>{{ change.year }}</td>
+                                            <td class="fw-medium">{{ change.year }}</td>
                                             <td>{{ change.original_currency }}</td>
                                             <td>{{ change.current_price|default:0|intcomma }}</td>
                                             <td>
                                                 {% if change.percentage_change is not None %}
-                                                    <span class="{% if change.percentage_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                    <span class="fw-bold {% if change.percentage_change >= 0 %}text-success{% else %}text-danger{% endif %}">
                                                         {{ change.percentage_change|floatformat:2 }}%
                                                     </span>
                                                 {% else %}
@@ -394,7 +293,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">ปิด</button>
+                        <button type="button" class="btn btn-primary rounded-pill shadow-sm" data-bs-dismiss="modal">ปิด</button>
                     </div>
                 </div>
             </div>
