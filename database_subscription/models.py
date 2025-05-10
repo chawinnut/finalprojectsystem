@@ -67,7 +67,7 @@ class DatabaseSubscription(models.Model):
         max_length=3,
         blank=True,
         null=True,
-        choices=[('USD', 'USD'), ('GBP', 'GBP'), ('EUR', 'EUR')],
+        choices=[('USD', 'USD'), ('GBP', 'GBP'), ('EUR', 'EUR'), ('THB', 'THB')],
         verbose_name='สกุลเงินต้นทาง'
     )
 
